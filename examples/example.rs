@@ -93,7 +93,9 @@ fn main_() -> Result<(), Error> {
     /* Build the function in internal memory. */
     log::info!("building the function...");
     let start = Instant::now();
-    let timings = f.build_in_internal_memory_from_bytes(&keys, &config).map_err(Error::Building)?;
+    let timings = f
+        .build_in_internal_memory_from_bytes(&keys, &config)
+        .map_err(Error::Building)?;
     // let timings = f.build_in_external_memory(keys, config);
     log::info!("function built in {} seconds", start.elapsed().as_secs());
     let total_seconds = timings.partitioning_seconds

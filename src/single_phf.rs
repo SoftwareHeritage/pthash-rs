@@ -160,7 +160,7 @@ impl<H: Hasher> SinglePhf for SinglePhf_Dictionary_Minimal<H> {
     ) -> Result<BuildTimings, Exception>
     where
         <Keys as IntoIterator>::IntoIter: ExactSizeIterator + Clone,
-        <<Keys as IntoIterator>::IntoIter as Iterator>::Item: Hashable
+        <<Keys as IntoIterator>::IntoIter as Iterator>::Item: Hashable,
     {
         // This is a Rust rewrite of internal_memory_builder_single_phf::build_from_keys
         // so we can use generics
@@ -176,10 +176,7 @@ impl<H: Hasher> SinglePhf for SinglePhf_Dictionary_Minimal<H> {
 
         let mut last_error = None;
         for (i, seed) in seeds.into_iter().enumerate() {
-            let hashes: Vec<_> = keys
-                .clone()
-                .map(|key| H::hash(key, seed))
-                .collect();
+            let hashes: Vec<_> = keys.clone().map(|key| H::hash(key, seed)).collect();
             self.seed = seed;
 
             let mut builder = ffi::internal_memory_builder_single_phf_new();
@@ -204,7 +201,7 @@ impl<H: Hasher> SinglePhf for SinglePhf_Dictionary_Minimal<H> {
                     return Ok(BuildTimings::from_ffi(&timings));
                 }
                 Err(e) => {
-                    log::info!("Attempt {} failed", i+1);
+                    log::info!("Attempt {} failed", i + 1);
                     last_error = Some(e);
                     // Try again with the next seed, if any
                 }
