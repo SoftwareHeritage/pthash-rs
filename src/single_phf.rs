@@ -14,40 +14,7 @@ use rand::Rng;
 
 use crate::build::{BuildConfiguration, BuildTimings};
 use crate::hashing::{Hashable, Hasher};
-
-pub trait SinglePhf: Sized {
-    /// Whether instances of this function have their values in the range `[0; num_keys)`.
-    const MINIMAL: bool;
-
-    fn build_in_internal_memory_from_bytes<Keys: IntoIterator>(
-        &mut self,
-        keys: Keys,
-        config: &BuildConfiguration,
-    ) -> Result<BuildTimings, Exception>
-    where
-        <Keys as IntoIterator>::IntoIter: ExactSizeIterator + Clone,
-        <<Keys as IntoIterator>::IntoIter as Iterator>::Item: Hashable;
-
-    fn hash(&self, key: impl Hashable) -> u64;
-
-    fn num_bits(&self) -> usize;
-    fn num_keys(&self) -> u64;
-    /// Largest value returned by [`Self::hash`] plus 1
-    fn table_size(&self) -> u64;
-
-    fn save(&mut self, path: impl AsRef<Path>) -> Result<usize, Exception>;
-    fn load(path: impl AsRef<Path>) -> Result<Self, Exception>;
-}
-
-/*
-include_cpp! {
-    #include "pthash.hpp"
-    concrete!(
-        "pthash::single_phf<pthash::murmurhash2_64, pthash::dictionary_dictionary, true>",
-        SinglePhf_Murmur64_Dictionary_Minimal
-    )
-}
-*/
+use crate::Phf;
 
 #[cxx::bridge]
 mod ffi {
@@ -72,8 +39,6 @@ mod ffi {
     unsafe extern "C++" {
         include!("pthash.hpp");
         include!("cpp-utils.hpp");
-
-        fn valid_seed(seed: u64) -> bool;
 
         #[cxx_name = "construct"]
         fn internal_memory_builder_single_phf_new() -> UniquePtr<internal_memory_builder_single_phf>;
@@ -150,7 +115,7 @@ impl<H: Hasher> SinglePhf_Dictionary_Minimal<H> {
     }
 }
 
-impl<H: Hasher> SinglePhf for SinglePhf_Dictionary_Minimal<H> {
+impl<H: Hasher> Phf for SinglePhf_Dictionary_Minimal<H> {
     const MINIMAL: bool = true;
 
     fn build_in_internal_memory_from_bytes<Keys: IntoIterator>(
@@ -165,7 +130,7 @@ impl<H: Hasher> SinglePhf for SinglePhf_Dictionary_Minimal<H> {
         // This is a Rust rewrite of internal_memory_builder_single_phf::build_from_keys
         // so we can use generics
 
-        let seeds = if ffi::valid_seed(config.seed) {
+        let seeds = if crate::utils::valid_seed(config.seed) {
             vec![config.seed]
         } else {
             let mut rng = rand::thread_rng();

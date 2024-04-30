@@ -6,7 +6,19 @@
 #[cfg(feature = "check")]
 use thiserror::Error;
 
-use crate::{Hashable, SinglePhf};
+use crate::{Hashable, Phf};
+
+#[cxx::bridge]
+mod ffi {
+    #[namespace = "pthash_rs::utils"]
+    unsafe extern "C++" {
+        include!("cpp-utils.hpp");
+
+        fn valid_seed(seed: u64) -> bool;
+    }
+}
+
+pub(crate) use ffi::valid_seed;
 
 #[cfg(feature = "check")]
 #[derive(Error, Debug)]
@@ -30,7 +42,7 @@ pub enum ViolatedInvariant {
 
 #[cfg(feature = "check")]
 /// Checks the function is injective (and bijective in `[0; num_keys)`, if [`Self::MINIMAL`])
-pub fn check<Keys: IntoIterator, F: SinglePhf>(keys: Keys, f: &F) -> Result<(), ViolatedInvariant>
+pub fn check<Keys: IntoIterator, F: Phf>(keys: Keys, f: &F) -> Result<(), ViolatedInvariant>
 where
     <<Keys as IntoIterator>::IntoIter as Iterator>::Item: Hashable,
 {

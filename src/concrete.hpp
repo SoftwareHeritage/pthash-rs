@@ -24,6 +24,16 @@ namespace pthash_rs {
                 true
             >
             singlephf_dictionary_minimal;
+
+        typedef pthash::internal_memory_builder_partitioned_phf<mock_hasher>
+            internal_memory_builder_partitioned_phf;
+
+        typedef pthash::partitioned_phf<
+                mock_hasher,
+                pthash::dictionary_dictionary,
+                true
+            >
+            partitionedphf_dictionary_minimal;
     }
 
 }

@@ -7,7 +7,13 @@ use std::path::Path;
 
 use thiserror::Error;
 
-const BRIDGE_MODULES: [&str; 3] = ["src/single_phf.rs", "src/hashing.rs", "src/build.rs"];
+const BRIDGE_MODULES: [&str; 5] = [
+    "src/partitioned_phf.rs",
+    "src/single_phf.rs",
+    "src/hashing.rs",
+    "src/build.rs",
+    "src/utils.rs",
+];
 
 #[derive(Error, Debug)]
 pub enum BuildError {
