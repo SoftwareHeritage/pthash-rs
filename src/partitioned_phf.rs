@@ -12,96 +12,13 @@ use std::path::Path;
 use cxx::{Exception, UniquePtr};
 use rand::Rng;
 
+use crate::backends::{internal_memory_builder_partitioned_phf, BackendPhf, Builder};
 use crate::build::{BuildConfiguration, BuildTimings};
-use crate::hashing::{Hashable, Hasher};
+use crate::hashing::{Hash, Hashable, Hasher};
 use crate::Phf;
 
-#[cxx::bridge]
-mod ffi {
-    #[namespace = "pthash"]
-    unsafe extern "C++" {
-        include!("pthash.hpp");
-
-        type build_timings = crate::structs::build_timings;
-        type build_configuration = crate::build::ffi::build_configuration;
-        type hash64 = crate::structs::hash64;
-    }
-
-    #[namespace = "pthash_rs::concrete"]
-    unsafe extern "C++" {
-        include!("concrete.hpp");
-
-        type partitionedphf_dictionary_minimal;
-        type internal_memory_builder_partitioned_phf;
-    }
-
-    #[namespace = "pthash_rs::utils"]
-    unsafe extern "C++" {
-        include!("pthash.hpp");
-        include!("cpp-utils.hpp");
-
-        #[cxx_name = "construct"]
-        fn internal_memory_builder_partitioned_phf_new(
-        ) -> UniquePtr<internal_memory_builder_partitioned_phf>;
-
-        unsafe fn build_from_hashes(
-            self: Pin<&mut internal_memory_builder_partitioned_phf>,
-            hashes: *const hash64,
-            num_keys: u64,
-            config: &build_configuration,
-        ) -> Result<build_timings>;
-
-        #[cxx_name = "construct"]
-        fn partitionedphf_dictionary_minimal_new() -> UniquePtr<partitionedphf_dictionary_minimal>;
-
-        fn build(
-            self: Pin<&mut partitionedphf_dictionary_minimal>,
-            builder: &internal_memory_builder_partitioned_phf,
-            config: &build_configuration,
-        ) -> f64;
-
-        fn position(self: &partitionedphf_dictionary_minimal, hash: hash64) -> u64;
-        fn num_bits(self: &partitionedphf_dictionary_minimal) -> usize;
-        fn num_keys(self: &partitionedphf_dictionary_minimal) -> u64;
-        fn table_size(self: &partitionedphf_dictionary_minimal) -> u64;
-    }
-
-    #[namespace = "essentials"]
-    unsafe extern "C++" {
-        include!("pthash.hpp");
-
-        #[cxx_name = "save"]
-        unsafe fn partitionedphf_dictionary_minimal_save(
-            data_structure: Pin<&mut partitionedphf_dictionary_minimal>,
-            filename: *const c_char,
-        ) -> Result<usize>;
-
-        #[cxx_name = "load"]
-        unsafe fn partitionedphf_dictionary_minimal_load(
-            data_structure: Pin<&mut partitionedphf_dictionary_minimal>,
-            filename: *const c_char,
-        ) -> Result<usize>;
-    }
-
-    #[namespace = "pthash_rs::workarounds"]
-    unsafe extern "C++" {
-        include!("workarounds.hpp");
-
-        #[cxx_name = "set_seed"]
-        fn internal_memory_builder_partitioned_phf_set_seed(
-            function: Pin<&mut internal_memory_builder_partitioned_phf>,
-            seed: u64,
-        ) -> Result<()>;
-
-        #[cxx_name = "get_seed"]
-        fn partitionedphf_dictionary_minimal_get_seed(
-            function: Pin<&mut partitionedphf_dictionary_minimal>,
-        ) -> Result<u64>;
-    }
-}
-
 pub struct PartitionedPhf_Dictionary_Minimal<H: Hasher> {
-    inner: UniquePtr<ffi::partitionedphf_dictionary_minimal>,
+    inner: UniquePtr<<H::Hash as Hash>::PartitionedPhfBackend>,
     seed: u64,
     marker: PhantomData<H>,
 }
@@ -109,7 +26,7 @@ pub struct PartitionedPhf_Dictionary_Minimal<H: Hasher> {
 impl<H: Hasher> PartitionedPhf_Dictionary_Minimal<H> {
     pub fn new() -> Self {
         PartitionedPhf_Dictionary_Minimal {
-            inner: ffi::partitionedphf_dictionary_minimal_new(),
+            inner: BackendPhf::new(),
             seed: 0,
             marker: PhantomData,
         }
@@ -142,12 +59,12 @@ impl<H: Hasher> Phf for PartitionedPhf_Dictionary_Minimal<H> {
 
         let hashes: Vec<_> = keys.clone().map(|key| H::hash(key, config.seed)).collect();
 
-        let mut builder = ffi::internal_memory_builder_partitioned_phf_new();
+        let mut builder = <<H::Hash as Hash>::PartitionedPhfBackend as BackendPhf>::Builder::new();
 
         // internal_memory_builder_partitioned_phf::build_from_hashes ignores config.seed
         // and expects to be called by internal_memory_builder_partitioned_phf::build_from_keys
         // which sets it
-        ffi::internal_memory_builder_partitioned_phf_set_seed(builder.pin_mut(), config.seed)?;
+        builder.pin_mut().set_seed(config.seed)?;
 
         let config = config.to_ffi();
         let mut timings = unsafe {
@@ -181,7 +98,7 @@ impl<H: Hasher> Phf for PartitionedPhf_Dictionary_Minimal<H> {
         path.push(0); // null terminator
         let path = path.as_ptr() as *const i8;
 
-        unsafe { ffi::partitionedphf_dictionary_minimal_save(self.inner.pin_mut(), path) }
+        unsafe { self.inner.pin_mut().save(path) }
     }
     fn load(path: impl AsRef<Path>) -> Result<Self, Exception> {
         let mut f = Self::new();
@@ -190,9 +107,9 @@ impl<H: Hasher> Phf for PartitionedPhf_Dictionary_Minimal<H> {
         path.push(0); // null terminator
         let path = path.as_ptr() as *const i8;
 
-        unsafe { ffi::partitionedphf_dictionary_minimal_load(f.inner.pin_mut(), path) }?;
+        unsafe { f.inner.pin_mut().load(path) }?;
 
-        f.seed = ffi::partitionedphf_dictionary_minimal_get_seed(f.inner.pin_mut())?;
+        f.seed = f.inner.pin_mut().get_seed()?;
 
         Ok(f)
     }

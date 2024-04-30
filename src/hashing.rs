@@ -5,7 +5,17 @@
 
 use autocxx::prelude::*;
 
-use crate::structs::hash64;
+use crate::structs::{hash128, hash64};
+
+pub(crate) trait Hash: Sized {
+    type SinglePhfBackend: crate::backends::BackendPhf<Hash = Self>;
+    type PartitionedPhfBackend: crate::backends::BackendPhf<Hash = Self>;
+}
+
+impl Hash for hash64 {
+    type SinglePhfBackend = crate::backends::singlephf_dictionary_minimal;
+    type PartitionedPhfBackend = crate::backends::partitionedphf_dictionary_minimal;
+}
 
 pub trait Hashable {
     type Bytes<'a>: AsRef<[u8]>
@@ -45,7 +55,10 @@ impl Hashable for u64 {
 }
 
 pub trait Hasher {
-    fn hash(val: impl Hashable, seed: u64) -> hash64;
+    #[allow(private_bounds)] // Users shouldn't be able to impl the Hash trait
+    type Hash: Hash;
+
+    fn hash(val: impl Hashable, seed: u64) -> Self::Hash;
 }
 
 #[cxx::bridge]
@@ -73,15 +86,19 @@ mod ffi {
 pub struct MurmurHash2_64;
 
 impl Hasher for MurmurHash2_64 {
-    fn hash(val: impl Hashable, seed: u64) -> hash64 {
+    type Hash = hash64;
+
+    fn hash(val: impl Hashable, seed: u64) -> Self::Hash {
         let val = val.as_bytes();
         let val = val.as_ref();
         moveit! {
-            let h = unsafe { hash64::new1(ffi::MurmurHash2_64(
+            let h = unsafe { hash64::new1(
+                ffi::MurmurHash2_64(
                 val.as_ptr() as *const ffi::c_void,
                 val.len(),
                 seed,
-            )) };
+                )
+            ) };
         };
         autocxx::moveit::MoveRef::into_inner(std::pin::Pin::into_inner(h))
     }

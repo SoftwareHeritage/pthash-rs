@@ -7,6 +7,8 @@ use std::path::Path;
 
 use cxx::Exception;
 
+mod backends;
+
 mod hashing;
 pub use hashing::*;
 
