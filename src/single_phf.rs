@@ -17,6 +17,9 @@ use crate::build::{BuildConfiguration, BuildTimings};
 use crate::hashing::{Hash, Hashable, Hasher};
 use crate::Phf;
 
+/// Non-partitioned minimal perfect-hash function
+///
+/// This is a binding for `pthash::single_phf<H, dictionary_dictionary, true>`
 pub struct SinglePhf_Dictionary_Minimal<H: Hasher> {
     inner: UniquePtr<<H::Hash as Hash>::SinglePhfBackend>,
     seed: u64,

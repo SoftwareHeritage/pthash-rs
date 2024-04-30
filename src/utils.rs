@@ -6,8 +6,6 @@
 #[cfg(feature = "check")]
 use thiserror::Error;
 
-use crate::{Hashable, Phf};
-
 #[cxx::bridge]
 mod ffi {
     #[namespace = "pthash_rs::utils"]

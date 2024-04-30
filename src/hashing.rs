@@ -22,6 +22,7 @@ impl Hash for hash128 {
     type PartitionedPhfBackend = crate::backends::partitionedphf_128_dictionary_minimal;
 }
 
+/// Trait of types which can be hashed with PTHash perfect hash functions.
 pub trait Hashable {
     type Bytes<'a>: AsRef<[u8]>
     where
@@ -38,7 +39,7 @@ impl Hashable for [u8] {
     }
 }
 
-impl<'a, T: Hashable> Hashable for &'a T {
+impl<'a, T: Hashable + ?Sized> Hashable for &'a T {
     type Bytes<'b> = T::Bytes<'b> where Self: 'b;
 
     fn as_bytes(&self) -> Self::Bytes<'_> {
@@ -59,6 +60,8 @@ impl Hashable for u64 {
     }
 }
 
+/// Trait of generic non-cryptographic hash function, which can be used to back
+/// a PTHash perfect hash function.
 pub trait Hasher {
     #[allow(private_bounds)] // Users shouldn't be able to impl the Hash trait
     type Hash: Hash;
@@ -88,6 +91,10 @@ mod ffi {
     }
 }
 
+/// Implementation of the Murmur2 64-bits hash
+///
+/// This is a reimplementation of `pthash::murmurhash2_64` on top of `pthash::MurmurHash2_64`
+/// (not a binding for `pthash::MurmurHash2_64` or `pthash::murmurhash2_64`).
 pub struct MurmurHash2_64;
 
 impl Hasher for MurmurHash2_64 {
@@ -109,6 +116,13 @@ impl Hasher for MurmurHash2_64 {
     }
 }
 
+/// Implementation of a Murmur2 128-bits hash
+///
+/// This hash is obtained by computing [`MurmurHash2_64`] for both the seed and
+/// the bitwise negation of the seed and concatenating them.
+///
+/// This is a reimplementation of `pthash::murmurhash2_128` on top of `pthash::MurmurHash2_64`
+/// (not a binding for `pthash::MurmurHash2_128`).
 pub struct MurmurHash2_128;
 
 impl Hasher for MurmurHash2_128 {

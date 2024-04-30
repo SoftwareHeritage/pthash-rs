@@ -80,6 +80,8 @@ pub(crate) mod ffi {
     }
 }
 
+/// Parameter of
+/// [`build_in_internal_memory_from_bytes`](crate::Phf::build_in_internal_memory_from_bytes)
 #[derive(Clone, Debug, PartialEq)]
 pub struct BuildConfiguration {
     pub c: f64,
@@ -129,6 +131,9 @@ impl BuildConfiguration {
     }
 }
 
+/// Result of
+/// [`build_in_internal_memory_from_bytes`](crate::Phf::build_in_internal_memory_from_bytes)
+#[derive(Clone, Debug, PartialEq)]
 pub struct BuildTimings {
     pub partitioning_seconds: Duration,
     pub mapping_ordering_seconds: Duration,
