@@ -11,8 +11,9 @@ include_cpp! {
     //generate_pod!("pthash::util::byte_range")
     generate_pod!("pthash::build_timings")
     generate_pod!("pthash::hash64")
+    generate_pod!("pthash::hash128")
 }
 
 //fn test(val: ffi::byte_range) {}
 
-pub(crate) use ffi::pthash::{build_timings, hash64};
+pub(crate) use ffi::pthash::{build_timings, hash128, hash64};

@@ -13,8 +13,13 @@ pub(crate) trait Hash: Sized {
 }
 
 impl Hash for hash64 {
-    type SinglePhfBackend = crate::backends::singlephf_dictionary_minimal;
-    type PartitionedPhfBackend = crate::backends::partitionedphf_dictionary_minimal;
+    type SinglePhfBackend = crate::backends::singlephf_64_dictionary_minimal;
+    type PartitionedPhfBackend = crate::backends::partitionedphf_64_dictionary_minimal;
+}
+
+impl Hash for hash128 {
+    type SinglePhfBackend = crate::backends::singlephf_128_dictionary_minimal;
+    type PartitionedPhfBackend = crate::backends::partitionedphf_128_dictionary_minimal;
 }
 
 pub trait Hashable {
@@ -98,6 +103,32 @@ impl Hasher for MurmurHash2_64 {
                 val.len(),
                 seed,
                 )
+            ) };
+        };
+        autocxx::moveit::MoveRef::into_inner(std::pin::Pin::into_inner(h))
+    }
+}
+
+pub struct MurmurHash2_128;
+
+impl Hasher for MurmurHash2_128 {
+    type Hash = hash128;
+
+    fn hash(val: impl Hashable, seed: u64) -> Self::Hash {
+        let val = val.as_bytes();
+        let val = val.as_ref();
+        moveit! {
+            let h = unsafe { hash128::new1(
+                ffi::MurmurHash2_64(
+                    val.as_ptr() as *const ffi::c_void,
+                    val.len(),
+                    seed,
+                ),
+                ffi::MurmurHash2_64(
+                    val.as_ptr() as *const ffi::c_void,
+                    val.len(),
+                    !seed,
+                ),
             ) };
         };
         autocxx::moveit::MoveRef::into_inner(std::pin::Pin::into_inner(h))
