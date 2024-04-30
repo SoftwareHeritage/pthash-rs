@@ -67,13 +67,8 @@ impl<H: Hasher> Phf for SinglePhf_Dictionary_Minimal<H> {
 
             let mut builder = <<H::Hash as Hash>::SinglePhfBackend as BackendPhf>::Builder::new();
 
-            // internal_memory_builder_single_phf::build_from_hashes ignores config.seed
-            // and expects to be called by internal_memory_builder_single_phf::build_from_keys
-            // which sets it
-            builder.pin_mut().set_seed(seed)?;
-
             let mut config = (*config).clone();
-            config.seed = seed; // For the sake of completeness, but this is actually unused
+            config.seed = seed;
 
             let config = config.to_ffi();
             let res = unsafe {
@@ -130,7 +125,7 @@ impl<H: Hasher> Phf for SinglePhf_Dictionary_Minimal<H> {
 
         unsafe { f.inner.pin_mut().load(path) }?;
 
-        f.seed = f.inner.pin_mut().get_seed()?;
+        f.seed = f.inner.seed();
 
         Ok(f)
     }

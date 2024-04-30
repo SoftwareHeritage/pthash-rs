@@ -120,6 +120,7 @@ mod ffi {
         fn num_bits(self: &singlephf_64_dictionary_minimal) -> usize;
         fn num_keys(self: &singlephf_64_dictionary_minimal) -> u64;
         fn table_size(self: &singlephf_64_dictionary_minimal) -> u64;
+        fn seed(self: &singlephf_64_dictionary_minimal) -> u64;
     }
 
     #[namespace = "essentials"]
@@ -137,22 +138,6 @@ mod ffi {
             data_structure: Pin<&mut singlephf_64_dictionary_minimal>,
             filename: *const c_char,
         ) -> Result<usize>;
-    }
-
-    #[namespace = "pthash_rs::workarounds"]
-    unsafe extern "C++" {
-        include!("workarounds.hpp");
-
-        #[cxx_name = "set_seed"]
-        fn internal_memory_builder_single_phf_64_set_seed(
-            function: Pin<&mut internal_memory_builder_single_phf_64>,
-            seed: u64,
-        ) -> Result<()>;
-
-        #[cxx_name = "get_seed"]
-        fn singlephf_64_dictionary_minimal_get_seed(
-            function: Pin<&mut singlephf_64_dictionary_minimal>,
-        ) -> Result<u64>;
     }
 
     /**********************************************************************************
@@ -177,6 +162,7 @@ mod ffi {
         fn num_bits(self: &singlephf_128_dictionary_minimal) -> usize;
         fn num_keys(self: &singlephf_128_dictionary_minimal) -> u64;
         fn table_size(self: &singlephf_128_dictionary_minimal) -> u64;
+        fn seed(self: &singlephf_128_dictionary_minimal) -> u64;
     }
 
     #[namespace = "essentials"]
@@ -194,22 +180,6 @@ mod ffi {
             data_structure: Pin<&mut singlephf_128_dictionary_minimal>,
             filename: *const c_char,
         ) -> Result<usize>;
-    }
-
-    #[namespace = "pthash_rs::workarounds"]
-    unsafe extern "C++" {
-        include!("workarounds.hpp");
-
-        #[cxx_name = "set_seed"]
-        fn internal_memory_builder_single_phf_128_set_seed(
-            function: Pin<&mut internal_memory_builder_single_phf_128>,
-            seed: u64,
-        ) -> Result<()>;
-
-        #[cxx_name = "get_seed"]
-        fn singlephf_128_dictionary_minimal_get_seed(
-            function: Pin<&mut singlephf_128_dictionary_minimal>,
-        ) -> Result<u64>;
     }
 
     /**********************************************************************************
@@ -235,6 +205,7 @@ mod ffi {
         fn num_bits(self: &partitionedphf_64_dictionary_minimal) -> usize;
         fn num_keys(self: &partitionedphf_64_dictionary_minimal) -> u64;
         fn table_size(self: &partitionedphf_64_dictionary_minimal) -> u64;
+        fn seed(self: &partitionedphf_64_dictionary_minimal) -> u64;
     }
 
     #[namespace = "essentials"]
@@ -252,22 +223,6 @@ mod ffi {
             data_structure: Pin<&mut partitionedphf_64_dictionary_minimal>,
             filename: *const c_char,
         ) -> Result<usize>;
-    }
-
-    #[namespace = "pthash_rs::workarounds"]
-    unsafe extern "C++" {
-        include!("workarounds.hpp");
-
-        #[cxx_name = "set_seed"]
-        fn internal_memory_builder_partitioned_phf_64_set_seed(
-            function: Pin<&mut internal_memory_builder_partitioned_phf_64>,
-            seed: u64,
-        ) -> Result<()>;
-
-        #[cxx_name = "get_seed"]
-        fn partitionedphf_64_dictionary_minimal_get_seed(
-            function: Pin<&mut partitionedphf_64_dictionary_minimal>,
-        ) -> Result<u64>;
     }
 
     /**********************************************************************************
@@ -293,6 +248,7 @@ mod ffi {
         fn num_bits(self: &partitionedphf_128_dictionary_minimal) -> usize;
         fn num_keys(self: &partitionedphf_128_dictionary_minimal) -> u64;
         fn table_size(self: &partitionedphf_128_dictionary_minimal) -> u64;
+        fn seed(self: &partitionedphf_128_dictionary_minimal) -> u64;
     }
 
     #[namespace = "essentials"]
@@ -311,22 +267,6 @@ mod ffi {
             filename: *const c_char,
         ) -> Result<usize>;
     }
-
-    #[namespace = "pthash_rs::workarounds"]
-    unsafe extern "C++" {
-        include!("workarounds.hpp");
-
-        #[cxx_name = "set_seed"]
-        fn internal_memory_builder_partitioned_phf_128_set_seed(
-            function: Pin<&mut internal_memory_builder_partitioned_phf_128>,
-            seed: u64,
-        ) -> Result<()>;
-
-        #[cxx_name = "get_seed"]
-        fn partitionedphf_128_dictionary_minimal_get_seed(
-            function: Pin<&mut partitionedphf_128_dictionary_minimal>,
-        ) -> Result<u64>;
-    }
 }
 
 /**********************************************************************************
@@ -344,7 +284,6 @@ pub(crate) trait Builder: Sized + cxx::memory::UniquePtrTarget {
     type Hash: Hash;
 
     fn new() -> UniquePtr<Self>;
-    fn set_seed(self: Pin<&mut Self>, seed: u64) -> Result<()>;
 
     unsafe fn build_from_hashes(
         self: Pin<&mut Self>,
@@ -355,15 +294,12 @@ pub(crate) trait Builder: Sized + cxx::memory::UniquePtrTarget {
 }
 
 macro_rules! impl_builder {
-    ($type:ty, $hash:ty, $new:path, $set_seed:path, $build_from_hashes:path,) => {
+    ($type:ty, $hash:ty, $new:path, $build_from_hashes:path,) => {
         impl Builder for $type {
             type Hash = $hash;
 
             fn new() -> UniquePtr<Self> {
                 $new()
-            }
-            fn set_seed(self: Pin<&mut Self>, seed: u64) -> Result<()> {
-                $set_seed(self, seed)
             }
             unsafe fn build_from_hashes(
                 self: Pin<&mut Self>,
@@ -381,7 +317,6 @@ impl_builder!(
     internal_memory_builder_single_phf_64,
     hash64,
     ffi::internal_memory_builder_single_phf_64_new,
-    ffi::internal_memory_builder_single_phf_64_set_seed,
     internal_memory_builder_single_phf_64::build_from_hashes1,
 );
 
@@ -389,7 +324,6 @@ impl_builder!(
     internal_memory_builder_single_phf_128,
     hash128,
     ffi::internal_memory_builder_single_phf_128_new,
-    ffi::internal_memory_builder_single_phf_128_set_seed,
     internal_memory_builder_single_phf_128::build_from_hashes2,
 );
 
@@ -397,7 +331,6 @@ impl_builder!(
     internal_memory_builder_partitioned_phf_64,
     hash64,
     ffi::internal_memory_builder_partitioned_phf_64_new,
-    ffi::internal_memory_builder_partitioned_phf_64_set_seed,
     internal_memory_builder_partitioned_phf_64::build_from_hashes3,
 );
 
@@ -405,7 +338,6 @@ impl_builder!(
     internal_memory_builder_partitioned_phf_128,
     hash128,
     ffi::internal_memory_builder_partitioned_phf_128_new,
-    ffi::internal_memory_builder_partitioned_phf_128_set_seed,
     internal_memory_builder_partitioned_phf_128::build_from_hashes4,
 );
 
@@ -418,7 +350,8 @@ pub(crate) trait BackendPhf: Sized + cxx::memory::UniquePtrTarget {
     fn num_bits(&self) -> usize;
     fn num_keys(&self) -> u64;
     fn table_size(&self) -> u64;
-    fn get_seed(self: Pin<&mut Self>) -> Result<u64>;
+    fn seed(&self) -> u64;
+
     fn build(
         self: Pin<&mut Self>,
         builder: &Self::Builder,
@@ -430,7 +363,7 @@ pub(crate) trait BackendPhf: Sized + cxx::memory::UniquePtrTarget {
 }
 
 macro_rules! impl_backend_methods {
-    ($type:ty, $get_seed:path, $save:path, $load:path,) => {
+    ($type:ty, $save:path, $load:path,) => {
         fn position(&self, hash: Self::Hash) -> u64 {
             <$type>::position(self, hash)
         }
@@ -443,8 +376,8 @@ macro_rules! impl_backend_methods {
         fn table_size(&self) -> u64 {
             <$type>::table_size(self)
         }
-        fn get_seed(self: Pin<&mut Self>) -> Result<u64> {
-            $get_seed(self)
+        fn seed(&self) -> u64 {
+            <$type>::seed(self)
         }
         fn build(
             self: Pin<&mut Self>,
@@ -472,7 +405,6 @@ impl BackendPhf for singlephf_64_dictionary_minimal {
     }
     impl_backend_methods!(
         singlephf_64_dictionary_minimal,
-        ffi::singlephf_64_dictionary_minimal_get_seed,
         ffi::singlephf_64_dictionary_minimal_save,
         ffi::singlephf_64_dictionary_minimal_load,
     );
@@ -487,7 +419,6 @@ impl BackendPhf for singlephf_128_dictionary_minimal {
     }
     impl_backend_methods!(
         singlephf_128_dictionary_minimal,
-        ffi::singlephf_128_dictionary_minimal_get_seed,
         ffi::singlephf_128_dictionary_minimal_save,
         ffi::singlephf_128_dictionary_minimal_load,
     );
@@ -502,7 +433,6 @@ impl BackendPhf for partitionedphf_64_dictionary_minimal {
     }
     impl_backend_methods!(
         partitionedphf_64_dictionary_minimal,
-        ffi::partitionedphf_64_dictionary_minimal_get_seed,
         ffi::partitionedphf_64_dictionary_minimal_save,
         ffi::partitionedphf_64_dictionary_minimal_load,
     );
@@ -517,7 +447,6 @@ impl BackendPhf for partitionedphf_128_dictionary_minimal {
     }
     impl_backend_methods!(
         partitionedphf_128_dictionary_minimal,
-        ffi::partitionedphf_128_dictionary_minimal_get_seed,
         ffi::partitionedphf_128_dictionary_minimal_save,
         ffi::partitionedphf_128_dictionary_minimal_load,
     );

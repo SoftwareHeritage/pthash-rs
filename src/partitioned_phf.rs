@@ -64,11 +64,6 @@ impl<H: Hasher> Phf for PartitionedPhf_Dictionary_Minimal<H> {
 
         let mut builder = <<H::Hash as Hash>::PartitionedPhfBackend as BackendPhf>::Builder::new();
 
-        // internal_memory_builder_partitioned_phf::build_from_hashes ignores config.seed
-        // and expects to be called by internal_memory_builder_partitioned_phf::build_from_keys
-        // which sets it
-        builder.pin_mut().set_seed(config.seed)?;
-
         let config = config.to_ffi();
         let mut timings = unsafe {
             builder
@@ -112,7 +107,7 @@ impl<H: Hasher> Phf for PartitionedPhf_Dictionary_Minimal<H> {
 
         unsafe { f.inner.pin_mut().load(path) }?;
 
-        f.seed = f.inner.pin_mut().get_seed()?;
+        f.seed = f.inner.seed();
 
         Ok(f)
     }

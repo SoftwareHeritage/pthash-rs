@@ -60,7 +60,6 @@ fn main_() -> Result<(), BuildError> {
     println!("cargo:rerun-if-changed=src/structs.rs");
     println!("cargo:rerun-if-changed=src/cpp-utils.hpp");
     println!("cargo:rerun-if-changed=src/concrete.hpp");
-    println!("cargo:rerun-if-changed=src/workarounds.hpp");
 
     Ok(())
 }
