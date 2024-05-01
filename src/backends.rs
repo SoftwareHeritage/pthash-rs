@@ -53,7 +53,6 @@ mod ffi {
         fn internal_memory_builder_single_phf_64_new(
         ) -> UniquePtr<internal_memory_builder_single_phf_64>;
 
-        #[rust_name = "build_from_hashes1"] // why?
         unsafe fn build_from_hashes(
             self: Pin<&mut internal_memory_builder_single_phf_64>,
             hashes: *const hash64,
@@ -65,7 +64,6 @@ mod ffi {
         fn internal_memory_builder_single_phf_128_new(
         ) -> UniquePtr<internal_memory_builder_single_phf_128>;
 
-        #[rust_name = "build_from_hashes2"] // why?
         unsafe fn build_from_hashes(
             self: Pin<&mut internal_memory_builder_single_phf_128>,
             hashes: *const hash128,
@@ -77,7 +75,6 @@ mod ffi {
         fn internal_memory_builder_partitioned_phf_64_new(
         ) -> UniquePtr<internal_memory_builder_partitioned_phf_64>;
 
-        #[rust_name = "build_from_hashes3"] // why?
         unsafe fn build_from_hashes(
             self: Pin<&mut internal_memory_builder_partitioned_phf_64>,
             hashes: *const hash64,
@@ -89,7 +86,6 @@ mod ffi {
         fn internal_memory_builder_partitioned_phf_128_new(
         ) -> UniquePtr<internal_memory_builder_partitioned_phf_128>;
 
-        #[rust_name = "build_from_hashes4"] // why?
         unsafe fn build_from_hashes(
             self: Pin<&mut internal_memory_builder_partitioned_phf_128>,
             hashes: *const hash128,
@@ -294,7 +290,7 @@ pub(crate) trait Builder: Sized + cxx::memory::UniquePtrTarget {
 }
 
 macro_rules! impl_builder {
-    ($type:ty, $hash:ty, $new:path, $build_from_hashes:path,) => {
+    ($type:ty, $hash:ty, $new:path,) => {
         impl Builder for $type {
             type Hash = $hash;
 
@@ -307,7 +303,7 @@ macro_rules! impl_builder {
                 num_keys: u64,
                 config: &ffi::build_configuration,
             ) -> Result<build_timings> {
-                $build_from_hashes(self, hashes, num_keys, config)
+                <$type>::build_from_hashes(self, hashes, num_keys, config)
             }
         }
     };
@@ -317,28 +313,24 @@ impl_builder!(
     internal_memory_builder_single_phf_64,
     hash64,
     ffi::internal_memory_builder_single_phf_64_new,
-    internal_memory_builder_single_phf_64::build_from_hashes1,
 );
 
 impl_builder!(
     internal_memory_builder_single_phf_128,
     hash128,
     ffi::internal_memory_builder_single_phf_128_new,
-    internal_memory_builder_single_phf_128::build_from_hashes2,
 );
 
 impl_builder!(
     internal_memory_builder_partitioned_phf_64,
     hash64,
     ffi::internal_memory_builder_partitioned_phf_64_new,
-    internal_memory_builder_partitioned_phf_64::build_from_hashes3,
 );
 
 impl_builder!(
     internal_memory_builder_partitioned_phf_128,
     hash128,
     ffi::internal_memory_builder_partitioned_phf_128_new,
-    internal_memory_builder_partitioned_phf_128::build_from_hashes4,
 );
 
 pub(crate) trait BackendPhf: Sized + cxx::memory::UniquePtrTarget {
