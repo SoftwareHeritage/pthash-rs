@@ -16,10 +16,18 @@ keywords = ["orc", "apache-orc", "proc-macros"]
 categories = ["encoding", "parser-implementations"]
 
 [features]
-default = ["default_encoders"]
+default = ["default_encoders", "default_hash_sizes"]
 check = ["dep:sux", "dep:thiserror"]
 
-# Four structures are generated for each enabled encoder
+# The following feature groups trigger instantiation of C++ template for their cartesian
+# product. By default, these are 2 PHF types × 2 hash sizes × 3 encoders = 12 instances
+
+# Hash sizes
+default_hash_sizes = ["hash64", "hash128"]
+hash64 = []
+hash128 = ["hash64"] # implementation of MurmurHash2_128 depends on MurmurHash2_64
+
+# Encoders
 default_encoders = ["dictionary_dictionary", "partitioned_compact", "elias_fano"]
 dictionary_dictionary = []
 partitioned_compact = []

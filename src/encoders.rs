@@ -4,7 +4,10 @@
 // See top-level LICENSE file for more information
 
 use crate::hashing::Hash;
-use crate::structs::{hash128, hash64};
+#[cfg(feature = "hash64")]
+use crate::structs::hash64;
+#[cfg(feature = "hash128")]
+use crate::structs::hash128;
 
 pub trait Encoder {}
 
@@ -22,12 +25,14 @@ mod dictionary_dictionary {
     pub struct DictionaryDictionary;
     impl Encoder for DictionaryDictionary {}
 
+    #[cfg(feature = "hash64")]
     impl BackendForEncoderByHash<hash64> for DictionaryDictionary {
         type SinglePhfBackend = crate::backends::singlephf_64_dictionary_dictionary_minimal;
         type PartitionedPhfBackend =
             crate::backends::partitionedphf_64_dictionary_dictionary_minimal;
     }
 
+    #[cfg(feature = "hash128")]
     impl BackendForEncoderByHash<hash128> for DictionaryDictionary {
         type SinglePhfBackend = crate::backends::singlephf_128_dictionary_dictionary_minimal;
         type PartitionedPhfBackend =
@@ -46,11 +51,13 @@ mod partitioned_compact {
     pub struct PartitionedCompact;
     impl Encoder for PartitionedCompact {}
 
+    #[cfg(feature = "hash64")]
     impl BackendForEncoderByHash<hash64> for PartitionedCompact {
         type SinglePhfBackend = crate::backends::singlephf_64_partitioned_compact_minimal;
         type PartitionedPhfBackend = crate::backends::partitionedphf_64_partitioned_compact_minimal;
     }
 
+    #[cfg(feature = "hash128")]
     impl BackendForEncoderByHash<hash128> for PartitionedCompact {
         type SinglePhfBackend = crate::backends::singlephf_128_partitioned_compact_minimal;
         type PartitionedPhfBackend =
@@ -69,11 +76,13 @@ mod elias_fano {
     pub struct EliasFano;
     impl Encoder for EliasFano {}
 
+    #[cfg(feature = "hash64")]
     impl BackendForEncoderByHash<hash64> for EliasFano {
         type SinglePhfBackend = crate::backends::singlephf_64_elias_fano_minimal;
         type PartitionedPhfBackend = crate::backends::partitionedphf_64_elias_fano_minimal;
     }
 
+    #[cfg(feature = "hash128")]
     impl BackendForEncoderByHash<hash128> for EliasFano {
         type SinglePhfBackend = crate::backends::singlephf_128_elias_fano_minimal;
         type PartitionedPhfBackend = crate::backends::partitionedphf_128_elias_fano_minimal;

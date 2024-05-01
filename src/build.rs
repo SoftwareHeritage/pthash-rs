@@ -14,6 +14,7 @@ use crate::structs::build_timings;
 
 type Result<T> = std::result::Result<T, Exception>;
 
+#[cfg_attr(not(all(feature = "hash64", feature = "hash128")), allow(dead_code))]
 #[cxx::bridge]
 pub(crate) mod ffi {
     #[namespace = "pthash"]
@@ -145,11 +146,14 @@ pub(crate) mod ffi {
         fn set_verbose_output(conf: &mut UniquePtr<build_configuration>, value: bool);
     }
 }
-
+#[cfg(feature = "hash64")]
 pub(crate) use ffi::{
-    hash128, hash64, internal_memory_builder_partitioned_phf_128,
-    internal_memory_builder_partitioned_phf_64, internal_memory_builder_single_phf_128,
-    internal_memory_builder_single_phf_64,
+    hash64, internal_memory_builder_partitioned_phf_64, internal_memory_builder_single_phf_64,
+};
+
+#[cfg(feature = "hash128")]
+pub(crate) use ffi::{
+    hash128, internal_memory_builder_partitioned_phf_128, internal_memory_builder_single_phf_128,
 };
 
 pub(crate) trait Builder: Sized + cxx::memory::UniquePtrTarget {
@@ -185,24 +189,28 @@ macro_rules! impl_builder {
     };
 }
 
+#[cfg(feature = "hash64")]
 impl_builder!(
     internal_memory_builder_single_phf_64,
     hash64,
     ffi::internal_memory_builder_single_phf_64_new,
 );
 
+#[cfg(feature = "hash128")]
 impl_builder!(
     internal_memory_builder_single_phf_128,
     hash128,
     ffi::internal_memory_builder_single_phf_128_new,
 );
 
+#[cfg(feature = "hash64")]
 impl_builder!(
     internal_memory_builder_partitioned_phf_64,
     hash64,
     ffi::internal_memory_builder_partitioned_phf_64_new,
 );
 
+#[cfg(feature = "hash128")]
 impl_builder!(
     internal_memory_builder_partitioned_phf_128,
     hash128,

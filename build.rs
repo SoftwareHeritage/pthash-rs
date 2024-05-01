@@ -11,6 +11,7 @@ use thiserror::Error;
 const BRIDGE_MODULES: [&str; 3] = ["src/hashing.rs", "src/build.rs", "src/utils.rs"];
 
 const BACKENDS_BRIDGE_PRELUDE: &str = r#"
+#[cfg_attr(not(all(feature = "hash64", feature = "hash128")), allow(dead_code))]
 #[cxx::bridge]
 mod ffi {
     #[namespace = "pthash"]
@@ -87,9 +88,14 @@ const BACKENDS_BRIDGE_TEMPLATE: &str = r#"
 const BACKENDS_BRIDGE_POSTLUDE: &str = r#"
 }
 
+#[cfg(feature = "hash64")]
 pub(crate) use ffi::{
-    internal_memory_builder_partitioned_phf_128, internal_memory_builder_partitioned_phf_64,
-    internal_memory_builder_single_phf_128, internal_memory_builder_single_phf_64,
+    internal_memory_builder_partitioned_phf_64, internal_memory_builder_single_phf_64,
+};
+
+#[cfg(feature = "hash128")]
+pub(crate) use ffi::{
+    internal_memory_builder_partitioned_phf_128, internal_memory_builder_single_phf_128,
 };
 "#;
 
@@ -146,6 +152,8 @@ pub enum BuildError {
     WriteFile(PathBuf, std::io::Error),
     #[error("at least one of the encoder features must be enabled")]
     NoEncoder,
+    #[error("at least one of the hash size features must be enabled")]
+    NoHashSize,
 }
 
 fn main() {
@@ -253,9 +261,18 @@ fn concrete_structs() -> Result<Vec<ConcreteStruct>, BuildError> {
         return Err(BuildError::NoEncoder);
     }
 
+    let hash_sizes: Vec<_> = ["64", "128"]
+        .into_iter()
+        .filter(|hash_size| has_feature(&format!("hash{}", hash_size)))
+        .collect();
+
+    if hash_sizes.is_empty() {
+        return Err(BuildError::NoHashSize);
+    }
+
     let mut concrete_structs = Vec::new();
     for (encoder_snakecase, encoder_camelcase) in encoders {
-        for hash_size in ["64", "128"] {
+        for hash_size in &hash_sizes {
             for phf_type in ["single", "partitioned"] {
                 concrete_structs.push(ConcreteStruct {
                     struct_name: format!(
