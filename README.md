@@ -7,7 +7,18 @@ perfect-hash functions using:
 Conference on Research and Development in Information Retrieval (SIGIR). 2021.
 * Giulio Ermanno Pibiri and Roberto Trani. [*"Parallel and External-Memory Construction of Minimal Perfect Hash Functions with PTHash"*](https://ieeexplore.ieee.org/document/10210677). Transactions on Knowledge and Data Engineering (TKDE). 2023.
 
-# Example
+## Internal code structure
+
+Due to C++ templates being closer to macros than to Rust generics, every possible instantiation
+of type parameters of the Rust struct needs to be mapped to a concrete C++ class.
+
+This is invisible when using the crate, but means only hash algorithms and encoders
+explicitly allowed by this crate can be used.
+Additionally, the allow list can be adjusted through features to cut down on
+the combinatorial explosion of template instantiations and linking with Rust types;
+see `Cargo.toml` for details.
+
+## Example
 
 ```
 use pthash::*;
