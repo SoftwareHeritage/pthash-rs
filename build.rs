@@ -154,6 +154,8 @@ pub enum BuildError {
     NoEncoder,
     #[error("at least one of the hash size features must be enabled")]
     NoHashSize,
+    #[error("at least one of 'minimal' and 'nonminimal' features must be enabled")]
+    NoMinimality,
 }
 
 fn main() {
@@ -270,19 +272,33 @@ fn concrete_structs() -> Result<Vec<ConcreteStruct>, BuildError> {
         return Err(BuildError::NoHashSize);
     }
 
+    let minimalities: Vec<_> = ["nonminimal", "minimal"]
+        .into_iter()
+        .filter(|minimality| has_feature(minimality))
+        .collect();
+
+    if minimalities.is_empty() {
+        return Err(BuildError::NoMinimality);
+    }
+
     let mut concrete_structs = Vec::new();
     for (encoder_snakecase, encoder_camelcase) in encoders {
         for hash_size in &hash_sizes {
             for phf_type in ["single", "partitioned"] {
-                concrete_structs.push(ConcreteStruct {
-                    struct_name: format!(
-                        "{}phf_{}_{}_minimal",
-                        phf_type, hash_size, encoder_snakecase
-                    ),
-                    encoder_name: encoder_camelcase.to_string(),
-                    hash_type: format!("hash{}", hash_size),
-                    builder_name: format!("internal_memory_builder_{}_phf_{}", phf_type, hash_size),
-                })
+                for minimality in &minimalities {
+                    concrete_structs.push(ConcreteStruct {
+                        struct_name: format!(
+                            "{}phf_{}_{}_{}",
+                            phf_type, hash_size, encoder_snakecase, minimality
+                        ),
+                        encoder_name: encoder_camelcase.to_string(),
+                        hash_type: format!("hash{}", hash_size),
+                        builder_name: format!(
+                            "internal_memory_builder_{}_phf_{}",
+                            phf_type, hash_size
+                        ),
+                    })
+                }
             }
         }
     }

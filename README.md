@@ -28,7 +28,7 @@ let mut config = BuildConfiguration::new(temp_dir.path().to_owned());
 
 let keys: Vec<&[u8]> = vec!["abc".as_bytes(), "def".as_bytes(), "ghikl".as_bytes()];
 
-let mut f = SinglePhf_Minimal::<MurmurHash2_64, DictionaryDictionary>::new();
+let mut f = SinglePhf::<Minimal, MurmurHash2_64, DictionaryDictionary>::new();
 f.build_in_internal_memory_from_bytes(&keys, &config).expect("Failed to build");
 
 // Hashes are unique

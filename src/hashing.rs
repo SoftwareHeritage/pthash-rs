@@ -6,30 +6,52 @@
 use autocxx::prelude::*;
 
 use crate::encoders::{BackendForEncoderByHash, Encoder};
-#[cfg(feature = "hash64")]
-use crate::structs::hash64;
 #[cfg(feature = "hash128")]
 use crate::structs::hash128;
+#[cfg(feature = "hash64")]
+use crate::structs::hash64;
 
 pub(crate) trait Hash: Sized {
-    type SinglePhfBackend<E: Encoder>: crate::backends::BackendPhf<Hash = Self>;
-    type PartitionedPhfBackend<E: Encoder>: crate::backends::BackendPhf<Hash = Self>;
+    #[cfg(feature = "minimal")]
+    type MinimalSinglePhfBackend<E: Encoder>: crate::backends::BackendPhf<Hash = Self>;
+    #[cfg(feature = "nonminimal")]
+    type NonminimalSinglePhfBackend<E: Encoder>: crate::backends::BackendPhf<Hash = Self>;
+    #[cfg(feature = "minimal")]
+    type MinimalPartitionedPhfBackend<E: Encoder>: crate::backends::BackendPhf<Hash = Self>;
+    #[cfg(feature = "nonminimal")]
+    type NonminimalPartitionedPhfBackend<E: Encoder>: crate::backends::BackendPhf<Hash = Self>;
 }
 
 #[cfg(feature = "hash64")]
 impl Hash for hash64 {
-    type SinglePhfBackend<E: Encoder> =
-        <E as BackendForEncoderByHash<Self>>::SinglePhfBackend;
-    type PartitionedPhfBackend<E: Encoder> =
-        <E as BackendForEncoderByHash<Self>>::PartitionedPhfBackend;
+    #[cfg(feature = "minimal")]
+    type MinimalSinglePhfBackend<E: Encoder> =
+        <E as BackendForEncoderByHash<Self>>::MinimalSinglePhfBackend;
+    #[cfg(feature = "nonminimal")]
+    type NonminimalSinglePhfBackend<E: Encoder> =
+        <E as BackendForEncoderByHash<Self>>::NonminimalSinglePhfBackend;
+    #[cfg(feature = "minimal")]
+    type MinimalPartitionedPhfBackend<E: Encoder> =
+        <E as BackendForEncoderByHash<Self>>::MinimalPartitionedPhfBackend;
+    #[cfg(feature = "nonminimal")]
+    type NonminimalPartitionedPhfBackend<E: Encoder> =
+        <E as BackendForEncoderByHash<Self>>::NonminimalPartitionedPhfBackend;
 }
 
 #[cfg(feature = "hash128")]
 impl Hash for hash128 {
-    type SinglePhfBackend<E: Encoder> =
-        <E as BackendForEncoderByHash<Self>>::SinglePhfBackend;
-    type PartitionedPhfBackend<E: Encoder> =
-        <E as BackendForEncoderByHash<Self>>::PartitionedPhfBackend;
+    #[cfg(feature = "minimal")]
+    type MinimalSinglePhfBackend<E: Encoder> =
+        <E as BackendForEncoderByHash<Self>>::MinimalSinglePhfBackend;
+    #[cfg(feature = "nonminimal")]
+    type NonminimalSinglePhfBackend<E: Encoder> =
+        <E as BackendForEncoderByHash<Self>>::NonminimalSinglePhfBackend;
+    #[cfg(feature = "minimal")]
+    type MinimalPartitionedPhfBackend<E: Encoder> =
+        <E as BackendForEncoderByHash<Self>>::MinimalPartitionedPhfBackend;
+    #[cfg(feature = "nonminimal")]
+    type NonminimalPartitionedPhfBackend<E: Encoder> =
+        <E as BackendForEncoderByHash<Self>>::NonminimalPartitionedPhfBackend;
 }
 
 /// Trait of types which can be hashed with PTHash perfect hash functions.

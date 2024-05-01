@@ -14,24 +14,24 @@ use rand::Rng;
 
 use crate::backends::BackendPhf;
 use crate::build::{BuildConfiguration, BuildTimings, Builder};
-use crate::hashing::{Hash, Hashable, Hasher};
-use crate::{Encoder, Phf};
+use crate::hashing::{Hashable, Hasher};
+use crate::{Encoder, Minimality, Phf, SealedMinimality};
 
 /// Partitioned minimal perfect hash function
 ///
 /// This is a binding for `pthash::partitioned_phf<H, dictionary_dictionary, true>`
-pub struct PartitionedPhf_Minimal<H: Hasher, E: Encoder> {
-    inner: UniquePtr<<H::Hash as Hash>::PartitionedPhfBackend<E>>,
+pub struct PartitionedPhf<M: Minimality, H: Hasher, E: Encoder> {
+    inner: UniquePtr<<M as SealedMinimality>::PartitionedPhfBackend<H::Hash, E>>,
     seed: u64,
-    marker: PhantomData<H>,
+    marker: PhantomData<M>,
 }
 
-unsafe impl<H: Hasher, E: Encoder> Send for PartitionedPhf_Minimal<H, E> {}
-unsafe impl<H: Hasher, E: Encoder> Sync for PartitionedPhf_Minimal<H, E> {}
+unsafe impl<M: Minimality, H: Hasher, E: Encoder> Send for PartitionedPhf<M, H, E> {}
+unsafe impl<M: Minimality, H: Hasher, E: Encoder> Sync for PartitionedPhf<M, H, E> {}
 
-impl<H: Hasher, E: Encoder> PartitionedPhf_Minimal<H, E> {
+impl<M: Minimality, H: Hasher, E: Encoder> PartitionedPhf<M, H, E> {
     pub fn new() -> Self {
-        PartitionedPhf_Minimal {
+        PartitionedPhf {
             inner: BackendPhf::new(),
             seed: 0,
             marker: PhantomData,
@@ -39,8 +39,8 @@ impl<H: Hasher, E: Encoder> PartitionedPhf_Minimal<H, E> {
     }
 }
 
-impl<H: Hasher, E: Encoder> Phf for PartitionedPhf_Minimal<H, E> {
-    const MINIMAL: bool = true;
+impl<M: Minimality, H: Hasher, E: Encoder> Phf for PartitionedPhf<M, H, E> {
+    const MINIMAL: bool = M::AS_BOOL;
 
     fn build_in_internal_memory_from_bytes<Keys: IntoIterator>(
         &mut self,
@@ -66,7 +66,7 @@ impl<H: Hasher, E: Encoder> Phf for PartitionedPhf_Minimal<H, E> {
         let hashes: Vec<_> = keys.clone().map(|key| H::hash(key, config.seed)).collect();
 
         let mut builder =
-            <<H::Hash as Hash>::PartitionedPhfBackend<E> as BackendPhf>::Builder::new();
+            <<M as SealedMinimality>::PartitionedPhfBackend<H::Hash, E> as BackendPhf>::Builder::new();
 
         let config = config.to_ffi();
         let mut timings = unsafe {

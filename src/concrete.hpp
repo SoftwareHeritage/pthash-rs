@@ -8,6 +8,10 @@
 #include <pthash.hpp>
 
 #define concrete(hash_size, encoder) \
+    typedef pthash::single_phf<mock_hasher ## hash_size, pthash::encoder, false> \
+        singlephf_## hash_size ## _ ## encoder ## _nonminimal; \
+    typedef pthash::partitioned_phf<mock_hasher ## hash_size, pthash::encoder, false> \
+        partitionedphf_## hash_size ## _ ## encoder ## _nonminimal; \
     typedef pthash::single_phf<mock_hasher ## hash_size, pthash::encoder, true> \
         singlephf_## hash_size ## _ ## encoder ## _minimal; \
     typedef pthash::partitioned_phf<mock_hasher ## hash_size, pthash::encoder, true> \

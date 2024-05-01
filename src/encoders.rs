@@ -4,11 +4,10 @@
 // See top-level LICENSE file for more information
 
 use crate::hashing::Hash;
-#[cfg(feature = "hash64")]
-use crate::structs::hash64;
 #[cfg(feature = "hash128")]
 use crate::structs::hash128;
-
+#[cfg(feature = "hash64")]
+use crate::structs::hash64;
 
 #[cfg(all(feature = "hash64", feature = "hash128"))]
 #[allow(private_bounds)] // Users shouldn't be able to impl the Encoder trait
@@ -23,8 +22,14 @@ pub trait Encoder: BackendForEncoderByHash<hash128> {}
 
 /// Type trickery to make [`Hash`] implementable
 pub(crate) trait BackendForEncoderByHash<H: Hash> {
-    type SinglePhfBackend: crate::backends::BackendPhf<Hash = H, Encoder = Self>;
-    type PartitionedPhfBackend: crate::backends::BackendPhf<Hash = H, Encoder = Self>;
+    #[cfg(feature = "minimal")]
+    type MinimalSinglePhfBackend: crate::backends::BackendPhf<Hash = H, Encoder = Self>;
+    #[cfg(feature = "nonminimal")]
+    type NonminimalSinglePhfBackend: crate::backends::BackendPhf<Hash = H, Encoder = Self>;
+    #[cfg(feature = "minimal")]
+    type MinimalPartitionedPhfBackend: crate::backends::BackendPhf<Hash = H, Encoder = Self>;
+    #[cfg(feature = "nonminimal")]
+    type NonminimalPartitionedPhfBackend: crate::backends::BackendPhf<Hash = H, Encoder = Self>;
 }
 
 #[cfg(feature = "dictionary_dictionary")]
@@ -37,16 +42,32 @@ mod dictionary_dictionary {
 
     #[cfg(feature = "hash64")]
     impl BackendForEncoderByHash<hash64> for DictionaryDictionary {
-        type SinglePhfBackend = crate::backends::singlephf_64_dictionary_dictionary_minimal;
-        type PartitionedPhfBackend =
+        #[cfg(feature = "minimal")]
+        type MinimalSinglePhfBackend = crate::backends::singlephf_64_dictionary_dictionary_minimal;
+        #[cfg(feature = "nonminimal")]
+        type NonminimalSinglePhfBackend =
+            crate::backends::singlephf_64_dictionary_dictionary_nonminimal;
+        #[cfg(feature = "minimal")]
+        type MinimalPartitionedPhfBackend =
             crate::backends::partitionedphf_64_dictionary_dictionary_minimal;
+        #[cfg(feature = "nonminimal")]
+        type NonminimalPartitionedPhfBackend =
+            crate::backends::partitionedphf_64_dictionary_dictionary_nonminimal;
     }
 
     #[cfg(feature = "hash128")]
     impl BackendForEncoderByHash<hash128> for DictionaryDictionary {
-        type SinglePhfBackend = crate::backends::singlephf_128_dictionary_dictionary_minimal;
-        type PartitionedPhfBackend =
+        #[cfg(feature = "minimal")]
+        type MinimalSinglePhfBackend = crate::backends::singlephf_128_dictionary_dictionary_minimal;
+        #[cfg(feature = "nonminimal")]
+        type NonminimalSinglePhfBackend =
+            crate::backends::singlephf_128_dictionary_dictionary_nonminimal;
+        #[cfg(feature = "minimal")]
+        type MinimalPartitionedPhfBackend =
             crate::backends::partitionedphf_128_dictionary_dictionary_minimal;
+        #[cfg(feature = "nonminimal")]
+        type NonminimalPartitionedPhfBackend =
+            crate::backends::partitionedphf_128_dictionary_dictionary_nonminimal;
     }
 }
 
@@ -63,15 +84,32 @@ mod partitioned_compact {
 
     #[cfg(feature = "hash64")]
     impl BackendForEncoderByHash<hash64> for PartitionedCompact {
-        type SinglePhfBackend = crate::backends::singlephf_64_partitioned_compact_minimal;
-        type PartitionedPhfBackend = crate::backends::partitionedphf_64_partitioned_compact_minimal;
+        #[cfg(feature = "minimal")]
+        type MinimalSinglePhfBackend = crate::backends::singlephf_64_partitioned_compact_minimal;
+        #[cfg(feature = "nonminimal")]
+        type NonminimalSinglePhfBackend =
+            crate::backends::singlephf_64_partitioned_compact_nonminimal;
+        #[cfg(feature = "minimal")]
+        type MinimalPartitionedPhfBackend =
+            crate::backends::partitionedphf_64_partitioned_compact_minimal;
+        #[cfg(feature = "nonminimal")]
+        type NonminimalPartitionedPhfBackend =
+            crate::backends::partitionedphf_64_partitioned_compact_nonminimal;
     }
 
     #[cfg(feature = "hash128")]
     impl BackendForEncoderByHash<hash128> for PartitionedCompact {
-        type SinglePhfBackend = crate::backends::singlephf_128_partitioned_compact_minimal;
-        type PartitionedPhfBackend =
+        #[cfg(feature = "minimal")]
+        type MinimalSinglePhfBackend = crate::backends::singlephf_128_partitioned_compact_minimal;
+        #[cfg(feature = "nonminimal")]
+        type NonminimalSinglePhfBackend =
+            crate::backends::singlephf_128_partitioned_compact_nonminimal;
+        #[cfg(feature = "minimal")]
+        type MinimalPartitionedPhfBackend =
             crate::backends::partitionedphf_128_partitioned_compact_minimal;
+        #[cfg(feature = "nonminimal")]
+        type NonminimalPartitionedPhfBackend =
+            crate::backends::partitionedphf_128_partitioned_compact_nonminimal;
     }
 }
 
@@ -88,14 +126,28 @@ mod elias_fano {
 
     #[cfg(feature = "hash64")]
     impl BackendForEncoderByHash<hash64> for EliasFano {
-        type SinglePhfBackend = crate::backends::singlephf_64_elias_fano_minimal;
-        type PartitionedPhfBackend = crate::backends::partitionedphf_64_elias_fano_minimal;
+        #[cfg(feature = "minimal")]
+        type MinimalSinglePhfBackend = crate::backends::singlephf_64_elias_fano_minimal;
+        #[cfg(feature = "nonminimal")]
+        type NonminimalSinglePhfBackend = crate::backends::singlephf_64_elias_fano_nonminimal;
+        #[cfg(feature = "minimal")]
+        type MinimalPartitionedPhfBackend = crate::backends::partitionedphf_64_elias_fano_minimal;
+        #[cfg(feature = "nonminimal")]
+        type NonminimalPartitionedPhfBackend =
+            crate::backends::partitionedphf_64_elias_fano_nonminimal;
     }
 
     #[cfg(feature = "hash128")]
     impl BackendForEncoderByHash<hash128> for EliasFano {
-        type SinglePhfBackend = crate::backends::singlephf_128_elias_fano_minimal;
-        type PartitionedPhfBackend = crate::backends::partitionedphf_128_elias_fano_minimal;
+        #[cfg(feature = "minimal")]
+        type MinimalSinglePhfBackend = crate::backends::singlephf_128_elias_fano_minimal;
+        #[cfg(feature = "nonminimal")]
+        type NonminimalSinglePhfBackend = crate::backends::singlephf_128_elias_fano_nonminimal;
+        #[cfg(feature = "minimal")]
+        type MinimalPartitionedPhfBackend = crate::backends::partitionedphf_128_elias_fano_minimal;
+        #[cfg(feature = "nonminimal")]
+        type NonminimalPartitionedPhfBackend =
+            crate::backends::partitionedphf_128_elias_fano_nonminimal;
     }
 }
 

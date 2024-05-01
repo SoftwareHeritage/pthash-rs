@@ -84,7 +84,7 @@ fn main_() -> Result<(), Error> {
     config.verbose_output = true;
 
     /* Declare the PTHash function. */
-    let mut f = SinglePhf_Minimal::<MurmurHash2_64, DictionaryDictionary>::new();
+    let mut f = SinglePhf::<Minimal, MurmurHash2_64, DictionaryDictionary>::new();
 
     // config.num_partitions = 50;
     // config.num_threads = 4;
@@ -125,7 +125,7 @@ fn main_() -> Result<(), Error> {
     log::info!("reading the function from disk...");
     {
         /* Now reload from disk and query. */
-        let other = SinglePhf_Minimal::<MurmurHash2_64, DictionaryDictionary>::load(&output_path)
+        let other = SinglePhf::<Minimal, MurmurHash2_64, DictionaryDictionary>::load(&output_path)
             .map_err(Error::CxxIO)?;
         for i in 0..10 {
             log::info!("f({}) = {}", keys[i], other.hash(keys[i]));

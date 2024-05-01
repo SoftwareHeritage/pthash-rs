@@ -16,11 +16,17 @@ keywords = ["orc", "apache-orc", "proc-macros"]
 categories = ["encoding", "parser-implementations"]
 
 [features]
-default = ["default_encoders", "default_hash_sizes"]
+default = ["default_minimalities", "default_encoders", "default_hash_sizes"]
 check = ["dep:sux", "dep:thiserror"]
 
 # The following feature groups trigger instantiation of C++ template for their cartesian
-# product. By default, these are 2 PHF types × 2 hash sizes × 3 encoders = 12 instances
+# product. By default, these are 2 PHF types × 2 minimalities × 2 hash sizes × 3 encoders
+# = 24 instances
+
+# Minimalities
+default_minimalities = ["minimal", "nonminimal"]
+minimal = []
+nonminimal = []
 
 # Hash sizes
 default_hash_sizes = ["hash64", "hash128"]

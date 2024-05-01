@@ -14,24 +14,24 @@ use rand::Rng;
 
 use crate::backends::BackendPhf;
 use crate::build::{BuildConfiguration, BuildTimings, Builder};
-use crate::hashing::{Hash, Hashable, Hasher};
-use crate::{Encoder, Phf};
+use crate::hashing::{Hashable, Hasher};
+use crate::{Encoder, Minimality, Phf, SealedMinimality};
 
 /// Non-partitioned minimal perfect-hash function
 ///
 /// This is a binding for `pthash::single_phf<H, dictionary_dictionary, true>`
-pub struct SinglePhf_Minimal<H: Hasher, E: Encoder> {
-    inner: UniquePtr<<H::Hash as Hash>::SinglePhfBackend<E>>,
+pub struct SinglePhf<M: Minimality, H: Hasher, E: Encoder> {
+    inner: UniquePtr<<M as SealedMinimality>::SinglePhfBackend<H::Hash, E>>,
     seed: u64,
     marker: PhantomData<H>,
 }
 
-unsafe impl<H: Hasher, E: Encoder> Send for SinglePhf_Minimal<H, E> {}
-unsafe impl<H: Hasher, E: Encoder> Sync for SinglePhf_Minimal<H, E> {}
+unsafe impl<M: Minimality, H: Hasher, E: Encoder> Send for SinglePhf<M, H, E> {}
+unsafe impl<M: Minimality, H: Hasher, E: Encoder> Sync for SinglePhf<M, H, E> {}
 
-impl<H: Hasher, E: Encoder> SinglePhf_Minimal<H, E> {
+impl<M: Minimality, H: Hasher, E: Encoder> SinglePhf<M, H, E> {
     pub fn new() -> Self {
-        SinglePhf_Minimal {
+        SinglePhf {
             inner: BackendPhf::new(),
             seed: 0,
             marker: PhantomData,
@@ -39,8 +39,8 @@ impl<H: Hasher, E: Encoder> SinglePhf_Minimal<H, E> {
     }
 }
 
-impl<H: Hasher, E: Encoder> Phf for SinglePhf_Minimal<H, E> {
-    const MINIMAL: bool = true;
+impl<M: Minimality, H: Hasher, E: Encoder> Phf for SinglePhf<M, H, E> {
+    const MINIMAL: bool = M::AS_BOOL;
 
     fn build_in_internal_memory_from_bytes<Keys: IntoIterator>(
         &mut self,
@@ -69,7 +69,8 @@ impl<H: Hasher, E: Encoder> Phf for SinglePhf_Minimal<H, E> {
             self.seed = seed;
 
             let mut builder =
-                <<H::Hash as Hash>::SinglePhfBackend<E> as BackendPhf>::Builder::new();
+                <<M as SealedMinimality>::SinglePhfBackend<H::Hash, E> as BackendPhf>::Builder::new(
+                );
 
             let mut config = (*config).clone();
             config.seed = seed;
