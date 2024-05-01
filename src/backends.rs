@@ -9,6 +9,7 @@ use cxx::{Exception, UniquePtr};
 
 use crate::hashing::Hash;
 use crate::structs::{build_timings, hash128, hash64};
+use crate::{DictionaryDictionary, Encoder};
 
 type Result<T> = std::result::Result<T, Exception>;
 
@@ -335,6 +336,7 @@ impl_builder!(
 
 pub(crate) trait BackendPhf: Sized + cxx::memory::UniquePtrTarget {
     type Hash: Hash;
+    type Encoder: Encoder;
     type Builder: Builder<Hash = Self::Hash>;
 
     fn new() -> UniquePtr<Self>;
@@ -390,6 +392,7 @@ macro_rules! impl_backend_methods {
 
 impl BackendPhf for singlephf_64_dictionary_minimal {
     type Hash = ffi::hash64;
+    type Encoder = DictionaryDictionary;
     type Builder = internal_memory_builder_single_phf_64;
 
     fn new() -> UniquePtr<Self> {
@@ -404,6 +407,7 @@ impl BackendPhf for singlephf_64_dictionary_minimal {
 
 impl BackendPhf for singlephf_128_dictionary_minimal {
     type Hash = ffi::hash128;
+    type Encoder = DictionaryDictionary;
     type Builder = internal_memory_builder_single_phf_128;
 
     fn new() -> UniquePtr<Self> {
@@ -418,6 +422,7 @@ impl BackendPhf for singlephf_128_dictionary_minimal {
 
 impl BackendPhf for partitionedphf_64_dictionary_minimal {
     type Hash = ffi::hash64;
+    type Encoder = DictionaryDictionary;
     type Builder = internal_memory_builder_partitioned_phf_64;
 
     fn new() -> UniquePtr<Self> {
@@ -432,6 +437,7 @@ impl BackendPhf for partitionedphf_64_dictionary_minimal {
 
 impl BackendPhf for partitionedphf_128_dictionary_minimal {
     type Hash = ffi::hash128;
+    type Encoder = DictionaryDictionary;
     type Builder = internal_memory_builder_partitioned_phf_128;
 
     fn new() -> UniquePtr<Self> {

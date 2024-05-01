@@ -6,20 +6,25 @@
 use autocxx::prelude::*;
 
 use crate::structs::{hash128, hash64};
+use crate::encoders::{BackendForEncoderByHash, DictionaryDictionary, Encoder};
 
 pub(crate) trait Hash: Sized {
-    type SinglePhfBackend: crate::backends::BackendPhf<Hash = Self>;
-    type PartitionedPhfBackend: crate::backends::BackendPhf<Hash = Self>;
+    type SinglePhfBackend<E: Encoder>: crate::backends::BackendPhf<Hash = Self>;
+    type PartitionedPhfBackend<E: Encoder>: crate::backends::BackendPhf<Hash = Self>;
 }
 
 impl Hash for hash64 {
-    type SinglePhfBackend = crate::backends::singlephf_64_dictionary_minimal;
-    type PartitionedPhfBackend = crate::backends::partitionedphf_64_dictionary_minimal;
+    type SinglePhfBackend<E: Encoder> =
+        <DictionaryDictionary as BackendForEncoderByHash<Self>>::SinglePhfBackend;
+    type PartitionedPhfBackend<E: Encoder> =
+        <DictionaryDictionary as BackendForEncoderByHash<Self>>::PartitionedPhfBackend;
 }
 
 impl Hash for hash128 {
-    type SinglePhfBackend = crate::backends::singlephf_128_dictionary_minimal;
-    type PartitionedPhfBackend = crate::backends::partitionedphf_128_dictionary_minimal;
+    type SinglePhfBackend<E: Encoder> =
+        <DictionaryDictionary as BackendForEncoderByHash<Self>>::SinglePhfBackend;
+    type PartitionedPhfBackend<E: Encoder> =
+        <DictionaryDictionary as BackendForEncoderByHash<Self>>::PartitionedPhfBackend;
 }
 
 /// Trait of types which can be hashed with PTHash perfect hash functions.

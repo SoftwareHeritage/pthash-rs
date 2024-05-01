@@ -15,20 +15,20 @@ use rand::Rng;
 use crate::backends::{BackendPhf, Builder};
 use crate::build::{BuildConfiguration, BuildTimings};
 use crate::hashing::{Hash, Hashable, Hasher};
-use crate::Phf;
+use crate::{Encoder, Phf};
 
 /// Partitioned minimal perfect hash function
 ///
 /// This is a binding for `pthash::partitioned_phf<H, dictionary_dictionary, true>`
-pub struct PartitionedPhf_Dictionary_Minimal<H: Hasher> {
-    inner: UniquePtr<<H::Hash as Hash>::PartitionedPhfBackend>,
+pub struct PartitionedPhf_Minimal<H: Hasher, E: Encoder> {
+    inner: UniquePtr<<H::Hash as Hash>::PartitionedPhfBackend<E>>,
     seed: u64,
     marker: PhantomData<H>,
 }
 
-impl<H: Hasher> PartitionedPhf_Dictionary_Minimal<H> {
+impl<H: Hasher, E: Encoder> PartitionedPhf_Minimal<H, E> {
     pub fn new() -> Self {
-        PartitionedPhf_Dictionary_Minimal {
+        PartitionedPhf_Minimal {
             inner: BackendPhf::new(),
             seed: 0,
             marker: PhantomData,
@@ -36,7 +36,7 @@ impl<H: Hasher> PartitionedPhf_Dictionary_Minimal<H> {
     }
 }
 
-impl<H: Hasher> Phf for PartitionedPhf_Dictionary_Minimal<H> {
+impl<H: Hasher, E: Encoder> Phf for PartitionedPhf_Minimal<H, E> {
     const MINIMAL: bool = true;
 
     fn build_in_internal_memory_from_bytes<Keys: IntoIterator>(
@@ -62,7 +62,8 @@ impl<H: Hasher> Phf for PartitionedPhf_Dictionary_Minimal<H> {
 
         let hashes: Vec<_> = keys.clone().map(|key| H::hash(key, config.seed)).collect();
 
-        let mut builder = <<H::Hash as Hash>::PartitionedPhfBackend as BackendPhf>::Builder::new();
+        let mut builder =
+            <<H::Hash as Hash>::PartitionedPhfBackend<E> as BackendPhf>::Builder::new();
 
         let config = config.to_ffi();
         let mut timings = unsafe {

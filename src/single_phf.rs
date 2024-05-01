@@ -15,20 +15,20 @@ use rand::Rng;
 use crate::backends::{BackendPhf, Builder};
 use crate::build::{BuildConfiguration, BuildTimings};
 use crate::hashing::{Hash, Hashable, Hasher};
-use crate::Phf;
+use crate::{Encoder, Phf};
 
 /// Non-partitioned minimal perfect-hash function
 ///
 /// This is a binding for `pthash::single_phf<H, dictionary_dictionary, true>`
-pub struct SinglePhf_Dictionary_Minimal<H: Hasher> {
-    inner: UniquePtr<<H::Hash as Hash>::SinglePhfBackend>,
+pub struct SinglePhf_Minimal<H: Hasher, E: Encoder> {
+    inner: UniquePtr<<H::Hash as Hash>::SinglePhfBackend<E>>,
     seed: u64,
     marker: PhantomData<H>,
 }
 
-impl<H: Hasher> SinglePhf_Dictionary_Minimal<H> {
+impl<H: Hasher, E: Encoder> SinglePhf_Minimal<H, E> {
     pub fn new() -> Self {
-        SinglePhf_Dictionary_Minimal {
+        SinglePhf_Minimal {
             inner: BackendPhf::new(),
             seed: 0,
             marker: PhantomData,
@@ -36,7 +36,7 @@ impl<H: Hasher> SinglePhf_Dictionary_Minimal<H> {
     }
 }
 
-impl<H: Hasher> Phf for SinglePhf_Dictionary_Minimal<H> {
+impl<H: Hasher, E: Encoder> Phf for SinglePhf_Minimal<H, E> {
     const MINIMAL: bool = true;
 
     fn build_in_internal_memory_from_bytes<Keys: IntoIterator>(
@@ -65,7 +65,8 @@ impl<H: Hasher> Phf for SinglePhf_Dictionary_Minimal<H> {
             let hashes: Vec<_> = keys.clone().map(|key| H::hash(key, seed)).collect();
             self.seed = seed;
 
-            let mut builder = <<H::Hash as Hash>::SinglePhfBackend as BackendPhf>::Builder::new();
+            let mut builder =
+                <<H::Hash as Hash>::SinglePhfBackend<E> as BackendPhf>::Builder::new();
 
             let mut config = (*config).clone();
             config.seed = seed;

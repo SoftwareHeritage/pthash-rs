@@ -11,6 +11,9 @@ use cxx::Exception;
 
 mod backends;
 
+mod encoders;
+pub use encoders::*;
+
 mod hashing;
 pub use hashing::*;
 
