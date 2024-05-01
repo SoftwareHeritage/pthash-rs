@@ -5,7 +5,7 @@
 
 use autocxx::prelude::*;
 
-use crate::encoders::{BackendForEncoderByHash, DictionaryDictionary, Encoder};
+use crate::encoders::{BackendForEncoderByHash, Encoder};
 #[cfg(feature = "hash64")]
 use crate::structs::hash64;
 #[cfg(feature = "hash128")]
@@ -19,17 +19,17 @@ pub(crate) trait Hash: Sized {
 #[cfg(feature = "hash64")]
 impl Hash for hash64 {
     type SinglePhfBackend<E: Encoder> =
-        <DictionaryDictionary as BackendForEncoderByHash<Self>>::SinglePhfBackend;
+        <E as BackendForEncoderByHash<Self>>::SinglePhfBackend;
     type PartitionedPhfBackend<E: Encoder> =
-        <DictionaryDictionary as BackendForEncoderByHash<Self>>::PartitionedPhfBackend;
+        <E as BackendForEncoderByHash<Self>>::PartitionedPhfBackend;
 }
 
 #[cfg(feature = "hash128")]
 impl Hash for hash128 {
     type SinglePhfBackend<E: Encoder> =
-        <DictionaryDictionary as BackendForEncoderByHash<Self>>::SinglePhfBackend;
+        <E as BackendForEncoderByHash<Self>>::SinglePhfBackend;
     type PartitionedPhfBackend<E: Encoder> =
-        <DictionaryDictionary as BackendForEncoderByHash<Self>>::PartitionedPhfBackend;
+        <E as BackendForEncoderByHash<Self>>::PartitionedPhfBackend;
 }
 
 /// Trait of types which can be hashed with PTHash perfect hash functions.

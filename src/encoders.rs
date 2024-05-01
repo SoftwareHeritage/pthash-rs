@@ -9,10 +9,20 @@ use crate::structs::hash64;
 #[cfg(feature = "hash128")]
 use crate::structs::hash128;
 
-pub trait Encoder {}
+
+#[cfg(all(feature = "hash64", feature = "hash128"))]
+#[allow(private_bounds)] // Users shouldn't be able to impl the Encoder trait
+pub trait Encoder: BackendForEncoderByHash<hash64> + BackendForEncoderByHash<hash128> {}
+#[cfg(all(feature = "hash64", not(feature = "hash128")))]
+#[allow(private_bounds)]
+pub trait Encoder: BackendForEncoderByHash<hash64> {}
+#[cfg(all(not(feature = "hash64"), feature = "hash128"))]
+#[allow(private_bounds)]
+pub trait Encoder: BackendForEncoderByHash<hash128> {}
+// build.rs rejects both hash64 and hash128 being disabled
 
 /// Type trickery to make [`Hash`] implementable
-pub(crate) trait BackendForEncoderByHash<H: Hash>: Encoder {
+pub(crate) trait BackendForEncoderByHash<H: Hash> {
     type SinglePhfBackend: crate::backends::BackendPhf<Hash = H, Encoder = Self>;
     type PartitionedPhfBackend: crate::backends::BackendPhf<Hash = H, Encoder = Self>;
 }
