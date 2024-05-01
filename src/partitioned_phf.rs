@@ -12,8 +12,8 @@ use std::path::Path;
 use cxx::{Exception, UniquePtr};
 use rand::Rng;
 
-use crate::backends::{BackendPhf, Builder};
-use crate::build::{BuildConfiguration, BuildTimings};
+use crate::backends::BackendPhf;
+use crate::build::{BuildConfiguration, BuildTimings, Builder};
 use crate::hashing::{Hash, Hashable, Hasher};
 use crate::{Encoder, Phf};
 

@@ -5,8 +5,8 @@
 
 use autocxx::prelude::*;
 
-use crate::structs::{hash128, hash64};
 use crate::encoders::{BackendForEncoderByHash, DictionaryDictionary, Encoder};
+use crate::structs::{hash128, hash64};
 
 pub(crate) trait Hash: Sized {
     type SinglePhfBackend<E: Encoder>: crate::backends::BackendPhf<Hash = Self>;

@@ -4,11 +4,15 @@
 // See top-level LICENSE file for more information
 
 use std::path::PathBuf;
+use std::pin::Pin;
 use std::time::Duration;
 
-use cxx::{let_cxx_string, UniquePtr};
+use cxx::{let_cxx_string, Exception, UniquePtr};
 
+use crate::hashing::Hash;
 use crate::structs::build_timings;
+
+type Result<T> = std::result::Result<T, Exception>;
 
 #[cxx::bridge]
 pub(crate) mod ffi {
@@ -17,6 +21,68 @@ pub(crate) mod ffi {
         include!("pthash.hpp");
 
         type build_configuration;
+        type build_timings = crate::structs::build_timings;
+        type hash64 = crate::structs::hash64;
+        type hash128 = crate::structs::hash128;
+    }
+
+    #[namespace = "pthash_rs::concrete"]
+    unsafe extern "C++" {
+        include!("concrete.hpp");
+        type internal_memory_builder_single_phf_64;
+        type internal_memory_builder_single_phf_128;
+        type internal_memory_builder_partitioned_phf_64;
+        type internal_memory_builder_partitioned_phf_128;
+    }
+
+    #[namespace = "pthash_rs::utils"]
+    unsafe extern "C++" {
+        include!("pthash.hpp");
+        include!("cpp-utils.hpp");
+
+        #[cxx_name = "construct"]
+        fn internal_memory_builder_single_phf_64_new(
+        ) -> UniquePtr<internal_memory_builder_single_phf_64>;
+
+        unsafe fn build_from_hashes(
+            self: Pin<&mut internal_memory_builder_single_phf_64>,
+            hashes: *const hash64,
+            num_keys: u64,
+            config: &build_configuration,
+        ) -> Result<build_timings>;
+
+        #[cxx_name = "construct"]
+        fn internal_memory_builder_single_phf_128_new(
+        ) -> UniquePtr<internal_memory_builder_single_phf_128>;
+
+        unsafe fn build_from_hashes(
+            self: Pin<&mut internal_memory_builder_single_phf_128>,
+            hashes: *const hash128,
+            num_keys: u64,
+            config: &build_configuration,
+        ) -> Result<build_timings>;
+
+        #[cxx_name = "construct"]
+        fn internal_memory_builder_partitioned_phf_64_new(
+        ) -> UniquePtr<internal_memory_builder_partitioned_phf_64>;
+
+        unsafe fn build_from_hashes(
+            self: Pin<&mut internal_memory_builder_partitioned_phf_64>,
+            hashes: *const hash64,
+            num_keys: u64,
+            config: &build_configuration,
+        ) -> Result<build_timings>;
+
+        #[cxx_name = "construct"]
+        fn internal_memory_builder_partitioned_phf_128_new(
+        ) -> UniquePtr<internal_memory_builder_partitioned_phf_128>;
+
+        unsafe fn build_from_hashes(
+            self: Pin<&mut internal_memory_builder_partitioned_phf_128>,
+            hashes: *const hash128,
+            num_keys: u64,
+            config: &build_configuration,
+        ) -> Result<build_timings>;
     }
 
     #[namespace = "pthash_rs::utils"]
@@ -79,6 +145,69 @@ pub(crate) mod ffi {
         fn set_verbose_output(conf: &mut UniquePtr<build_configuration>, value: bool);
     }
 }
+
+pub(crate) use ffi::{
+    hash128, hash64, internal_memory_builder_partitioned_phf_128,
+    internal_memory_builder_partitioned_phf_64, internal_memory_builder_single_phf_128,
+    internal_memory_builder_single_phf_64,
+};
+
+pub(crate) trait Builder: Sized + cxx::memory::UniquePtrTarget {
+    type Hash: Hash;
+
+    fn new() -> UniquePtr<Self>;
+
+    unsafe fn build_from_hashes(
+        self: Pin<&mut Self>,
+        hashes: *const Self::Hash,
+        num_keys: u64,
+        config: &ffi::build_configuration,
+    ) -> Result<build_timings>;
+}
+
+macro_rules! impl_builder {
+    ($type:ty, $hash:ty, $new:path,) => {
+        impl Builder for $type {
+            type Hash = $hash;
+
+            fn new() -> UniquePtr<Self> {
+                $new()
+            }
+            unsafe fn build_from_hashes(
+                self: Pin<&mut Self>,
+                hashes: *const Self::Hash,
+                num_keys: u64,
+                config: &ffi::build_configuration,
+            ) -> Result<build_timings> {
+                <$type>::build_from_hashes(self, hashes, num_keys, config)
+            }
+        }
+    };
+}
+
+impl_builder!(
+    internal_memory_builder_single_phf_64,
+    hash64,
+    ffi::internal_memory_builder_single_phf_64_new,
+);
+
+impl_builder!(
+    internal_memory_builder_single_phf_128,
+    hash128,
+    ffi::internal_memory_builder_single_phf_128_new,
+);
+
+impl_builder!(
+    internal_memory_builder_partitioned_phf_64,
+    hash64,
+    ffi::internal_memory_builder_partitioned_phf_64_new,
+);
+
+impl_builder!(
+    internal_memory_builder_partitioned_phf_128,
+    hash128,
+    ffi::internal_memory_builder_partitioned_phf_128_new,
+);
 
 /// Parameter of
 /// [`build_in_internal_memory_from_bytes`](crate::Phf::build_in_internal_memory_from_bytes)

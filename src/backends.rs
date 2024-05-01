@@ -7,8 +7,8 @@ use std::pin::Pin;
 
 use cxx::{Exception, UniquePtr};
 
+use crate::build::Builder;
 use crate::hashing::Hash;
-use crate::structs::{build_timings, hash128, hash64};
 use crate::{DictionaryDictionary, Encoder};
 
 type Result<T> = std::result::Result<T, Exception>;
@@ -29,70 +29,19 @@ mod ffi {
     unsafe extern "C++" {
         include!("concrete.hpp");
 
+        type internal_memory_builder_single_phf_64 =
+            crate::build::ffi::internal_memory_builder_single_phf_64;
+        type internal_memory_builder_single_phf_128 =
+            crate::build::ffi::internal_memory_builder_single_phf_128;
+        type internal_memory_builder_partitioned_phf_64 =
+            crate::build::ffi::internal_memory_builder_partitioned_phf_64;
+        type internal_memory_builder_partitioned_phf_128 =
+            crate::build::ffi::internal_memory_builder_partitioned_phf_128;
+
         type singlephf_64_dictionary_minimal;
-        type internal_memory_builder_single_phf_64;
-
         type singlephf_128_dictionary_minimal;
-        type internal_memory_builder_single_phf_128;
-
         type partitionedphf_64_dictionary_minimal;
-        type internal_memory_builder_partitioned_phf_64;
-
         type partitionedphf_128_dictionary_minimal;
-        type internal_memory_builder_partitioned_phf_128;
-    }
-
-    /**********************************************************************************
-     * builders
-     **********************************************************************************/
-
-    #[namespace = "pthash_rs::utils"]
-    unsafe extern "C++" {
-        include!("pthash.hpp");
-        include!("cpp-utils.hpp");
-        #[cxx_name = "construct"]
-        fn internal_memory_builder_single_phf_64_new(
-        ) -> UniquePtr<internal_memory_builder_single_phf_64>;
-
-        unsafe fn build_from_hashes(
-            self: Pin<&mut internal_memory_builder_single_phf_64>,
-            hashes: *const hash64,
-            num_keys: u64,
-            config: &build_configuration,
-        ) -> Result<build_timings>;
-
-        #[cxx_name = "construct"]
-        fn internal_memory_builder_single_phf_128_new(
-        ) -> UniquePtr<internal_memory_builder_single_phf_128>;
-
-        unsafe fn build_from_hashes(
-            self: Pin<&mut internal_memory_builder_single_phf_128>,
-            hashes: *const hash128,
-            num_keys: u64,
-            config: &build_configuration,
-        ) -> Result<build_timings>;
-
-        #[cxx_name = "construct"]
-        fn internal_memory_builder_partitioned_phf_64_new(
-        ) -> UniquePtr<internal_memory_builder_partitioned_phf_64>;
-
-        unsafe fn build_from_hashes(
-            self: Pin<&mut internal_memory_builder_partitioned_phf_64>,
-            hashes: *const hash64,
-            num_keys: u64,
-            config: &build_configuration,
-        ) -> Result<build_timings>;
-
-        #[cxx_name = "construct"]
-        fn internal_memory_builder_partitioned_phf_128_new(
-        ) -> UniquePtr<internal_memory_builder_partitioned_phf_128>;
-
-        unsafe fn build_from_hashes(
-            self: Pin<&mut internal_memory_builder_partitioned_phf_128>,
-            hashes: *const hash128,
-            num_keys: u64,
-            config: &build_configuration,
-        ) -> Result<build_timings>;
     }
 
     /**********************************************************************************
@@ -276,63 +225,6 @@ pub(crate) use ffi::{
     partitionedphf_128_dictionary_minimal, partitionedphf_64_dictionary_minimal,
     singlephf_128_dictionary_minimal, singlephf_64_dictionary_minimal,
 };
-
-pub(crate) trait Builder: Sized + cxx::memory::UniquePtrTarget {
-    type Hash: Hash;
-
-    fn new() -> UniquePtr<Self>;
-
-    unsafe fn build_from_hashes(
-        self: Pin<&mut Self>,
-        hashes: *const Self::Hash,
-        num_keys: u64,
-        config: &ffi::build_configuration,
-    ) -> Result<build_timings>;
-}
-
-macro_rules! impl_builder {
-    ($type:ty, $hash:ty, $new:path,) => {
-        impl Builder for $type {
-            type Hash = $hash;
-
-            fn new() -> UniquePtr<Self> {
-                $new()
-            }
-            unsafe fn build_from_hashes(
-                self: Pin<&mut Self>,
-                hashes: *const Self::Hash,
-                num_keys: u64,
-                config: &ffi::build_configuration,
-            ) -> Result<build_timings> {
-                <$type>::build_from_hashes(self, hashes, num_keys, config)
-            }
-        }
-    };
-}
-
-impl_builder!(
-    internal_memory_builder_single_phf_64,
-    hash64,
-    ffi::internal_memory_builder_single_phf_64_new,
-);
-
-impl_builder!(
-    internal_memory_builder_single_phf_128,
-    hash128,
-    ffi::internal_memory_builder_single_phf_128_new,
-);
-
-impl_builder!(
-    internal_memory_builder_partitioned_phf_64,
-    hash64,
-    ffi::internal_memory_builder_partitioned_phf_64_new,
-);
-
-impl_builder!(
-    internal_memory_builder_partitioned_phf_128,
-    hash128,
-    ffi::internal_memory_builder_partitioned_phf_128_new,
-);
 
 pub(crate) trait BackendPhf: Sized + cxx::memory::UniquePtrTarget {
     type Hash: Hash;
