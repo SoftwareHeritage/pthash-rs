@@ -6,6 +6,7 @@
 #[cfg(feature = "check")]
 use thiserror::Error;
 
+#[cfg(feature = "check")]
 use crate::{Hashable, Phf};
 
 #[cxx::bridge]
