@@ -7,6 +7,12 @@
 
 #include <pthash.hpp>
 
+#define concrete(hash_size, encoder) \
+    typedef pthash::single_phf<mock_hasher ## hash_size, pthash::encoder, true> \
+        singlephf_## hash_size ## _ ## encoder ## _minimal; \
+    typedef pthash::partitioned_phf<mock_hasher ## hash_size, pthash::encoder, true> \
+        partitionedphf_## hash_size ## _ ## encoder ## _minimal;
+
 namespace pthash_rs {
 
     namespace concrete {
@@ -24,39 +30,18 @@ namespace pthash_rs {
         typedef pthash::internal_memory_builder_single_phf<mock_hasher128>
             internal_memory_builder_single_phf_128;
 
-        typedef pthash::single_phf<
-                mock_hasher64,
-                pthash::dictionary_dictionary,
-                true
-            >
-            singlephf_64_dictionary_minimal;
-
-        typedef pthash::single_phf<
-                mock_hasher128,
-                pthash::dictionary_dictionary,
-                true
-            >
-            singlephf_128_dictionary_minimal;
-
         typedef pthash::internal_memory_builder_partitioned_phf<mock_hasher64>
             internal_memory_builder_partitioned_phf_64;
 
         typedef pthash::internal_memory_builder_partitioned_phf<mock_hasher128>
             internal_memory_builder_partitioned_phf_128;
 
-        typedef pthash::partitioned_phf<
-                mock_hasher64,
-                pthash::dictionary_dictionary,
-                true
-            >
-            partitionedphf_64_dictionary_minimal;
-
-        typedef pthash::partitioned_phf<
-                mock_hasher128,
-                pthash::dictionary_dictionary,
-                true
-            >
-            partitionedphf_128_dictionary_minimal;
+        concrete(64, dictionary_dictionary);
+        concrete(128, dictionary_dictionary);
+        concrete(64, partitioned_compact);
+        concrete(128, partitioned_compact);
+        concrete(64, elias_fano);
+        concrete(128, elias_fano);
     }
 
 }

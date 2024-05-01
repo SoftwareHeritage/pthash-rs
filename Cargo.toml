@@ -16,7 +16,14 @@ keywords = ["orc", "apache-orc", "proc-macros"]
 categories = ["encoding", "parser-implementations"]
 
 [features]
+default = ["default_encoders"]
 check = ["dep:sux", "dep:thiserror"]
+
+# Four structures are generated for each enabled encoder
+default_encoders = ["dictionary_dictionary", "partitioned_compact", "elias_fano"]
+dictionary_dictionary = []
+partitioned_compact = []
+elias_fano = []
 
 [dependencies]
 autocxx = "0.26.0"

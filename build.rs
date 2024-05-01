@@ -98,7 +98,7 @@ pub(crate) use ffi::$$STRUCT_NAME$$;
 
 impl BackendPhf for $$STRUCT_NAME$$ {
     type Hash = ffi::$$HASH_TYPE$$;
-    type Encoder = DictionaryDictionary;
+    type Encoder = $$ENCODER_NAME$$;
     type Builder = $$BUILDER_NAME$$;
 
     fn new() -> UniquePtr<Self> {
@@ -144,6 +144,8 @@ pub enum BuildError {
     CreateFile(PathBuf, std::io::Error),
     #[error("could not write to {0}: {1}")]
     WriteFile(PathBuf, std::io::Error),
+    #[error("at least one of the encoder features must be enabled")]
+    NoEncoder,
 }
 
 fn main() {
@@ -182,7 +184,7 @@ fn main_() -> Result<(), BuildError> {
     // Write bridge
     fd.write_all(BACKENDS_BRIDGE_PRELUDE.as_bytes())
         .map_err(|e| BuildError::WriteFile(backends_path.clone(), e))?;
-    for concrete_struct in concrete_structs() {
+    for concrete_struct in concrete_structs()? {
         fd.write_all(&subst(concrete_struct, BACKENDS_BRIDGE_TEMPLATE))
             .map_err(|e| BuildError::WriteFile(backends_path.clone(), e))?;
     }
@@ -190,7 +192,7 @@ fn main_() -> Result<(), BuildError> {
         .map_err(|e| BuildError::WriteFile(backends_path.clone(), e))?;
 
     // Write implementations
-    for concrete_struct in concrete_structs() {
+    for concrete_struct in concrete_structs()? {
         fd.write_all(&subst(concrete_struct, BACKENDS_IMPL_TEMPLATE))
             .map_err(|e| BuildError::WriteFile(backends_path.clone(), e))?;
     }
@@ -220,6 +222,7 @@ fn main_() -> Result<(), BuildError> {
 fn subst(concrete_struct: ConcreteStruct, template: &str) -> Vec<u8> {
     template
         .replace("$$STRUCT_NAME$$", &concrete_struct.struct_name)
+        .replace("$$ENCODER_NAME$$", &concrete_struct.encoder_name)
         .replace("$$HASH_TYPE$$", &concrete_struct.hash_type)
         .replace("$$BUILDER_NAME$$", &concrete_struct.builder_name)
         .into_bytes()
@@ -227,38 +230,45 @@ fn subst(concrete_struct: ConcreteStruct, template: &str) -> Vec<u8> {
 
 struct ConcreteStruct {
     struct_name: String,
+    encoder_name: String,
     hash_type: String,
     builder_name: String,
 }
 
-fn concrete_structs() -> Vec<ConcreteStruct> {
-    [
-        (
-            "singlephf_64_dictionary_minimal",
-            "hash64",
-            "internal_memory_builder_single_phf_64",
-        ),
-        (
-            "singlephf_128_dictionary_minimal",
-            "hash128",
-            "internal_memory_builder_single_phf_128",
-        ),
-        (
-            "partitionedphf_64_dictionary_minimal",
-            "hash64",
-            "internal_memory_builder_partitioned_phf_64",
-        ),
-        (
-            "partitionedphf_128_dictionary_minimal",
-            "hash128",
-            "internal_memory_builder_partitioned_phf_128",
-        ),
+fn has_feature(feature: &str) -> bool {
+    std::env::var(&format!("CARGO_FEATURE_{}", feature.to_uppercase())).is_ok()
+}
+
+fn concrete_structs() -> Result<Vec<ConcreteStruct>, BuildError> {
+    let encoders: Vec<_> = [
+        ("dictionary_dictionary", "DictionaryDictionary"),
+        ("partitioned_compact", "PartitionedCompact"),
+        ("elias_fano", "EliasFano"),
     ]
     .into_iter()
-    .map(|(struct_name, hash_type, builder_name)| ConcreteStruct {
-        struct_name: struct_name.to_string(),
-        hash_type: hash_type.to_string(),
-        builder_name: builder_name.to_string(),
-    })
-    .collect()
+    .filter(|(snakecase, _camelcase)| has_feature(snakecase))
+    .collect();
+
+    if encoders.is_empty() {
+        return Err(BuildError::NoEncoder);
+    }
+
+    let mut concrete_structs = Vec::new();
+    for (encoder_snakecase, encoder_camelcase) in encoders {
+        for hash_size in ["64", "128"] {
+            for phf_type in ["single", "partitioned"] {
+                concrete_structs.push(ConcreteStruct {
+                    struct_name: format!(
+                        "{}phf_{}_{}_minimal",
+                        phf_type, hash_size, encoder_snakecase
+                    ),
+                    encoder_name: encoder_camelcase.to_string(),
+                    hash_type: format!("hash{}", hash_size),
+                    builder_name: format!("internal_memory_builder_{}_phf_{}", phf_type, hash_size),
+                })
+            }
+        }
+    }
+
+    Ok(concrete_structs)
 }

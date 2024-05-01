@@ -8,8 +8,8 @@ use std::pin::Pin;
 use cxx::{Exception, UniquePtr};
 
 use crate::build::Builder;
+use crate::encoders::*;
 use crate::hashing::Hash;
-use crate::{DictionaryDictionary, Encoder};
 
 type Result<T> = std::result::Result<T, Exception>;
 
