@@ -26,6 +26,9 @@ pub struct PartitionedPhf_Minimal<H: Hasher, E: Encoder> {
     marker: PhantomData<H>,
 }
 
+unsafe impl<H: Hasher, E: Encoder> Send for PartitionedPhf_Minimal<H, E> {}
+unsafe impl<H: Hasher, E: Encoder> Sync for PartitionedPhf_Minimal<H, E> {}
+
 impl<H: Hasher, E: Encoder> PartitionedPhf_Minimal<H, E> {
     pub fn new() -> Self {
         PartitionedPhf_Minimal {

@@ -26,6 +26,9 @@ pub struct SinglePhf_Minimal<H: Hasher, E: Encoder> {
     marker: PhantomData<H>,
 }
 
+unsafe impl<H: Hasher, E: Encoder> Send for SinglePhf_Minimal<H, E> {}
+unsafe impl<H: Hasher, E: Encoder> Sync for SinglePhf_Minimal<H, E> {}
+
 impl<H: Hasher, E: Encoder> SinglePhf_Minimal<H, E> {
     pub fn new() -> Self {
         SinglePhf_Minimal {

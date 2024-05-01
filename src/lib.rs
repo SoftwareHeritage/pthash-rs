@@ -34,7 +34,7 @@ pub use utils::*;
 
 /// A [perfect-hash function](https://en.wikipedia.org/wiki/Perfect_hash_function)
 /// implemented with the [PTHash algorithm](https://dl.acm.org/doi/10.1145/3404835.3462849)
-pub trait Phf: Sized {
+pub trait Phf: Sized + Send + Sync {
     /// Whether instances of this function have their values in the range `[0; num_keys)`.
     const MINIMAL: bool;
 
