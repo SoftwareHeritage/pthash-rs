@@ -36,7 +36,7 @@ let keys: Vec<&[u8]> = vec!["abc".as_bytes(), "def".as_bytes(), "ghikl".as_bytes
 let mut f = SinglePhf::<Minimal, MurmurHash2_64, DictionaryDictionary>::new();
 f.build_in_internal_memory_from_bytes(&keys, &config).expect("Failed to build");
 
-// Hashes are unique and in the [0; 100) segment
+// Hashes are unique and in the [0; 3) segment
 let mut hashes: Vec<u64> = keys.iter().map(|key| f.hash(key)).collect();
 hashes.sort();
 assert_eq!(hashes, vec![0, 1, 2]);
@@ -64,7 +64,7 @@ f.build_in_internal_memory_from_bytes(&keys, &config).expect("Failed to build");
 let mut hashes: Vec<u64> = keys.iter().map(|key| f.hash(key)).collect();
 hashes.sort();
 
-// But not necessarily in the [0; 2) segment (not minimal)
+// But not necessarily in the [0; 3) segment (not minimal)
 // assert_eq!(hashes, vec![0, 1, 2]);
 
 // Hashing an object that wasn't provided when building the function may collide
