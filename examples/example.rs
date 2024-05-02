@@ -34,7 +34,15 @@ use std::time::Instant;
 use rand::prelude::*;
 use thiserror::Error;
 
-use pthash::*;
+use pthash::{
+    BuildConfiguration,
+    DictionaryDictionary,
+    Hashable,
+    Minimal,
+    MurmurHash2_64,
+    Phf,
+    SinglePhf,
+};
 
 #[derive(Debug, Error)]
 enum Error {

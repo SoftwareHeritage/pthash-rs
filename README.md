@@ -21,14 +21,22 @@ see `Cargo.toml` for details.
 ## Example
 
 ```
-use pthash::*;
+use pthash::{
+    BuildConfiguration,
+    DictionaryDictionary,
+    Hashable,
+    Minimal,
+    MurmurHash2_64,
+    Phf,
+    SinglePhf,
+};
 
 let temp_dir = tempfile::tempdir().unwrap();
 let mut config = BuildConfiguration::new(temp_dir.path().to_owned());
 
 let keys: Vec<&[u8]> = vec!["abc".as_bytes(), "def".as_bytes(), "ghikl".as_bytes()];
 
-let mut f = SinglePhf::<Minimal, MurmurHash2_64, encoders::DictionaryDictionary>::new();
+let mut f = SinglePhf::<Minimal, MurmurHash2_64, DictionaryDictionary>::new();
 f.build_in_internal_memory_from_bytes(&keys, &config).expect("Failed to build");
 
 // Hashes are unique
