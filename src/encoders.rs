@@ -15,13 +15,22 @@ use crate::structs::hash64;
 
 #[cfg(all(feature = "hash64", feature = "hash128"))]
 #[allow(private_bounds)] // Users shouldn't be able to impl the Encoder trait
-pub trait Encoder: BackendForEncoderByHash<hash64> + BackendForEncoderByHash<hash128> {}
+pub trait Encoder: BackendForEncoderByHash<hash64> + BackendForEncoderByHash<hash128> {
+    /// Same value as the one passed as PTHash's CLI's -e argument
+    const NAME: &'static str;
+}
 #[cfg(all(feature = "hash64", not(feature = "hash128")))]
 #[allow(private_bounds)]
-pub trait Encoder: BackendForEncoderByHash<hash64> {}
+pub trait Encoder: BackendForEncoderByHash<hash64> {
+    /// Same value as the one passed as PTHash's CLI's -e argument
+    const NAME: &'static str;
+}
 #[cfg(all(not(feature = "hash64"), feature = "hash128"))]
 #[allow(private_bounds)]
-pub trait Encoder: BackendForEncoderByHash<hash128> {}
+pub trait Encoder: BackendForEncoderByHash<hash128> {
+    /// Same value as the one passed as PTHash's CLI's -e argument
+    const NAME: &'static str;
+}
 // build.rs rejects both hash64 and hash128 being disabled
 
 /// Type trickery to make [`Hash`] implementable
@@ -42,7 +51,9 @@ mod dictionary_dictionary {
 
     /// Encoder known as "D-D" in the PTHash papers
     pub struct DictionaryDictionary;
-    impl Encoder for DictionaryDictionary {}
+    impl Encoder for DictionaryDictionary {
+        const NAME: &'static str = "dictionary_dictionary";
+    }
 
     #[cfg(feature = "hash64")]
     impl BackendForEncoderByHash<hash64> for DictionaryDictionary {
@@ -84,7 +95,9 @@ mod partitioned_compact {
 
     /// Encoder known as "DC" in the PTHash papers
     pub struct PartitionedCompact;
-    impl Encoder for PartitionedCompact {}
+    impl Encoder for PartitionedCompact {
+        const NAME: &'static str = "partitioned_compact";
+    }
 
     #[cfg(feature = "hash64")]
     impl BackendForEncoderByHash<hash64> for PartitionedCompact {
@@ -126,7 +139,9 @@ mod elias_fano {
 
     /// Encoder known as "EF" in the PTHash papers
     pub struct EliasFano;
-    impl Encoder for EliasFano {}
+    impl Encoder for EliasFano {
+        const NAME: &'static str = "elias_fano";
+    }
 
     #[cfg(feature = "hash64")]
     impl BackendForEncoderByHash<hash64> for EliasFano {

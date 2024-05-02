@@ -54,10 +54,10 @@ autocxx-engine = "0.26.0"
 cxx-build = "1.0"
 
 [dev-dependencies]
+anyhow = "1.0.79"
 rand = "0.8.5"
 stderrlog = "0.5.4"
 tempfile = "3.7.1"
-thiserror = "1.0.48"
 
 [[example]]
 name = "example"

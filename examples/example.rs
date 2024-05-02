@@ -31,24 +31,12 @@
 use std::collections::HashSet;
 use std::time::Instant;
 
+use anyhow::{Context, Result};
 use rand::prelude::*;
-use thiserror::Error;
 
 use pthash::{
     BuildConfiguration, DictionaryDictionary, Hashable, Minimal, MurmurHash2_64, Phf, SinglePhf,
 };
-
-#[derive(Debug, Error)]
-enum Error {
-    #[error("I/O error: {0}")]
-    IO(#[from] std::io::Error),
-    #[error("I/O error: {0}")]
-    CxxIO(cxx::Exception),
-    #[error("Could not build MPH: {0}")]
-    Building(cxx::Exception),
-    #[error("Function violates invariant: {0}")]
-    ViolatedInvariant(#[from] ViolatedInvariant),
-}
 
 fn main() {
     if let Err(e) = main_() {
@@ -56,7 +44,7 @@ fn main() {
         std::process::exit(1);
     }
 }
-fn main_() -> Result<(), Error> {
+fn main_() -> Result<()> {
     stderrlog::new()
         .verbosity(2)
         .timestamp(stderrlog::Timestamp::Second)
@@ -97,7 +85,7 @@ fn main_() -> Result<(), Error> {
     let start = Instant::now();
     let timings = f
         .build_in_internal_memory_from_bytes(&keys, &config)
-        .map_err(Error::Building)?;
+        .context("Could not build PHF")?;
     // let timings = f.build_in_external_memory(keys, config);
     log::info!("function built in {} seconds", start.elapsed().as_secs());
     let total_seconds = timings.partitioning_seconds
@@ -122,7 +110,7 @@ fn main_() -> Result<(), Error> {
     /* Serialize the data structure to a file. */
     log::info!("serializing the function to disk...");
     let output_path = temp_dir.path().join("pthash.bin");
-    f.save(&output_path).map_err(Error::CxxIO)?;
+    f.save(&output_path).context("Could not write PHF")?;
 
     log::info!("reading the function from disk...");
     {
@@ -130,7 +118,7 @@ fn main_() -> Result<(), Error> {
         let other = SinglePhf::<Minimal, MurmurHash2_64, encoders::DictionaryDictionary>::load(
             &output_path,
         )
-        .map_err(Error::CxxIO)?;
+        .context("Could not read PHF")?;
         for i in 0..10 {
             log::info!("f({}) = {}", keys[i], other.hash(keys[i]));
             assert_eq!(f.hash(keys[i]), other.hash(keys[i]));
