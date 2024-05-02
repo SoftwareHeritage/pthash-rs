@@ -3,6 +3,10 @@
 // License: GNU General Public License version 3, or any later version
 // See top-level LICENSE file for more information
 
+//! Implementations of the last type parameter of [`SinglePhf`](crate::SinglePhf) and
+//! [`PartitionedPhf`](crate::PartitionedPhf) ([`DictionaryDictionary`],
+//! [`PartitionedCompact`], and [`EliasFano`])
+
 use crate::hashing::Hash;
 #[cfg(feature = "hash128")]
 use crate::structs::hash128;

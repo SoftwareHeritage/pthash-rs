@@ -9,16 +9,19 @@ use std::path::Path;
 
 use cxx::Exception;
 
+pub mod build;
+pub use build::*;
+
 mod backends;
 
-mod encoders;
+pub mod encoders;
 pub use encoders::*;
 
-mod hashing;
+pub mod hashing;
 pub use hashing::*;
 
-mod build;
-pub use build::*;
+pub mod minimality;
+pub use minimality::*;
 
 mod partitioned_phf;
 pub use partitioned_phf::*;
@@ -31,43 +34,6 @@ pub use single_phf::*;
 mod utils;
 #[allow(unused_imports)] // check() is feature-gated
 pub use utils::*;
-
-pub(crate) trait SealedMinimality {
-    type SinglePhfBackend<H: Hash, E: Encoder>: crate::backends::BackendPhf<Hash = H>;
-    type PartitionedPhfBackend<H: Hash, E: Encoder>: crate::backends::BackendPhf<Hash = H>;
-}
-
-#[allow(private_bounds)]
-pub trait Minimality: SealedMinimality {
-    const AS_BOOL: bool;
-}
-
-#[cfg(feature = "minimal")]
-/// Type parameter of PHFs whose values are contiguous in the `[0; num_keys)` segment
-pub struct Minimal;
-#[cfg(feature = "minimal")]
-impl Minimality for Minimal {
-    const AS_BOOL: bool = true;
-}
-#[cfg(feature = "minimal")]
-impl SealedMinimality for Minimal {
-    type SinglePhfBackend<H: Hash, E: Encoder> = <H as Hash>::MinimalSinglePhfBackend<E>;
-    type PartitionedPhfBackend<H: Hash, E: Encoder> = <H as Hash>::MinimalPartitionedPhfBackend<E>;
-}
-
-#[cfg(feature = "nonminimal")]
-/// Opposite of [`Nonminimal`]
-pub struct Nonminimal;
-#[cfg(feature = "nonminimal")]
-impl Minimality for Nonminimal {
-    const AS_BOOL: bool = false;
-}
-#[cfg(feature = "nonminimal")]
-impl SealedMinimality for Nonminimal {
-    type SinglePhfBackend<H: Hash, E: Encoder> = <H as Hash>::NonminimalSinglePhfBackend<E>;
-    type PartitionedPhfBackend<H: Hash, E: Encoder> =
-        <H as Hash>::NonminimalPartitionedPhfBackend<E>;
-}
 
 /// A [perfect-hash function](https://en.wikipedia.org/wiki/Perfect_hash_function)
 /// implemented with the [PTHash algorithm](https://dl.acm.org/doi/10.1145/3404835.3462849)

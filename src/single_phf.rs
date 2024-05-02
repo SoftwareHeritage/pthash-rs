@@ -14,8 +14,9 @@ use rand::Rng;
 
 use crate::backends::BackendPhf;
 use crate::build::{BuildConfiguration, BuildTimings, Builder};
+use crate::encoders::Encoder;
 use crate::hashing::{Hashable, Hasher};
-use crate::{Encoder, Minimality, Phf, SealedMinimality};
+use crate::{Minimality, Phf, SealedMinimality};
 
 /// Non-partitioned minimal perfect-hash function
 ///

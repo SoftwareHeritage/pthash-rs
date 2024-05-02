@@ -3,6 +3,9 @@
 // License: GNU General Public License version 3, or any later version
 // See top-level LICENSE file for more information
 
+//! Structures used when [building a PHF](crate::Phf::build_in_internal_memory_from_bytes`)
+//! ([`BuildTimings`] and [`BuildConfiguration`])
+
 use std::path::PathBuf;
 use std::pin::Pin;
 use std::time::Duration;

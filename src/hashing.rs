@@ -3,6 +3,9 @@
 // License: GNU General Public License version 3, or any later version
 // See top-level LICENSE file for more information
 
+//! Non-perfect hash algorithms underlying a PHF ([`MurmurHash2_64`] and
+//! [`MurmurHash2_128`])
+
 use autocxx::prelude::*;
 
 use crate::encoders::{BackendForEncoderByHash, Encoder};
