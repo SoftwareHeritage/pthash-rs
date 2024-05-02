@@ -22,13 +22,7 @@ see `Cargo.toml` for details.
 
 ```
 use pthash::{
-    BuildConfiguration,
-    DictionaryDictionary,
-    Hashable,
-    Minimal,
-    MurmurHash2_64,
-    Phf,
-    SinglePhf,
+    BuildConfiguration, DictionaryDictionary, Hashable, Minimal, MurmurHash2_64, Phf, SinglePhf
 };
 
 let temp_dir = tempfile::tempdir().unwrap();

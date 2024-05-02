@@ -35,13 +35,7 @@ use rand::prelude::*;
 use thiserror::Error;
 
 use pthash::{
-    BuildConfiguration,
-    DictionaryDictionary,
-    Hashable,
-    Minimal,
-    MurmurHash2_64,
-    Phf,
-    SinglePhf,
+    BuildConfiguration, DictionaryDictionary, Hashable, Minimal, MurmurHash2_64, Phf, SinglePhf,
 };
 
 #[derive(Debug, Error)]
@@ -133,8 +127,10 @@ fn main_() -> Result<(), Error> {
     log::info!("reading the function from disk...");
     {
         /* Now reload from disk and query. */
-        let other = SinglePhf::<Minimal, MurmurHash2_64, encoders::DictionaryDictionary>::load(&output_path)
-            .map_err(Error::CxxIO)?;
+        let other = SinglePhf::<Minimal, MurmurHash2_64, encoders::DictionaryDictionary>::load(
+            &output_path,
+        )
+        .map_err(Error::CxxIO)?;
         for i in 0..10 {
             log::info!("f({}) = {}", keys[i], other.hash(keys[i]));
             assert_eq!(f.hash(keys[i]), other.hash(keys[i]));

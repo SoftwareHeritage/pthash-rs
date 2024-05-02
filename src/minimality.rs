@@ -9,8 +9,8 @@
 //! Ideally this would be a `bool` const generic, but we need to use a trait instead
 //! due to the underlying C++ binding.
 
-use crate::hashing::Hash;
 use crate::encoders::Encoder;
+use crate::hashing::Hash;
 
 pub(crate) trait SealedMinimality {
     type SinglePhfBackend<H: Hash, E: Encoder>: crate::backends::BackendPhf<Hash = H>;
@@ -48,5 +48,3 @@ impl SealedMinimality for Nonminimal {
     type PartitionedPhfBackend<H: Hash, E: Encoder> =
         <H as Hash>::NonminimalPartitionedPhfBackend<E>;
 }
-
-
