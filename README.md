@@ -18,7 +18,9 @@ Additionally, the allow list can be adjusted through features to cut down on
 the combinatorial explosion of template instantiations and linking with Rust types;
 see `Cargo.toml` for details.
 
-## Example
+## Examples
+
+## Minimal PHF
 
 ```
 use pthash::{
@@ -27,13 +29,14 @@ use pthash::{
 
 let temp_dir = tempfile::tempdir().unwrap();
 let mut config = BuildConfiguration::new(temp_dir.path().to_owned());
+config.minimal_output = true;
 
 let keys: Vec<&[u8]> = vec!["abc".as_bytes(), "def".as_bytes(), "ghikl".as_bytes()];
 
 let mut f = SinglePhf::<Minimal, MurmurHash2_64, DictionaryDictionary>::new();
 f.build_in_internal_memory_from_bytes(&keys, &config).expect("Failed to build");
 
-// Hashes are unique
+// Hashes are unique and in the [0; 100) segment
 let mut hashes: Vec<u64> = keys.iter().map(|key| f.hash(key)).collect();
 hashes.sort();
 assert_eq!(hashes, vec![0, 1, 2]);
@@ -42,3 +45,28 @@ assert_eq!(hashes, vec![0, 1, 2]);
 assert!(f.hash(b"not_a_key".as_bytes()) < 3);
 ```
 
+## Non-minimal PHF
+
+```
+use pthash::{
+    BuildConfiguration, DictionaryDictionary, Hashable, Nonminimal, MurmurHash2_64, Phf, SinglePhf
+};
+
+let temp_dir = tempfile::tempdir().unwrap();
+let mut config = BuildConfiguration::new(temp_dir.path().to_owned());
+
+let keys: Vec<&[u8]> = vec!["abc".as_bytes(), "def".as_bytes(), "ghikl".as_bytes()];
+
+let mut f = SinglePhf::<Nonminimal, MurmurHash2_64, DictionaryDictionary>::new();
+f.build_in_internal_memory_from_bytes(&keys, &config).expect("Failed to build");
+
+// Hashes are unique
+let mut hashes: Vec<u64> = keys.iter().map(|key| f.hash(key)).collect();
+hashes.sort();
+
+// But not necessarily in the [0; 2) segment (not minimal)
+// assert_eq!(hashes, vec![0, 1, 2]);
+
+// Hashing an object that wasn't provided when building the function may collide
+assert!(f.hash(b"not_a_key".as_bytes()) < *hashes.last().unwrap());
+```
