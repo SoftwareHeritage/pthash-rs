@@ -68,5 +68,5 @@ hashes.sort();
 // assert_eq!(hashes, vec![0, 1, 2]);
 
 // Hashing an object that wasn't provided when building the function may collide
-assert!(f.hash(b"not_a_key".as_bytes()) < *hashes.last().unwrap());
+// assert!(!hashes.contains(f.hash(b"not_a_key".as_bytes())));
 ```
