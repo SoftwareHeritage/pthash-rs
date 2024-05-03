@@ -58,7 +58,7 @@ const BACKENDS_BRIDGE_TEMPLATE: &str = r#"
             self: Pin<&mut $$STRUCT_NAME$$>,
             builder: &$$BUILDER_NAME$$,
             config: &build_configuration,
-        ) -> f64;
+        ) -> Result<f64>;
 
         fn position(self: &$$STRUCT_NAME$$, hash: $$HASH_TYPE$$) -> u64;
         fn num_bits(self: &$$STRUCT_NAME$$) -> usize;
@@ -129,7 +129,7 @@ impl BackendPhf for $$STRUCT_NAME$$ {
         self: Pin<&mut Self>,
         builder: &Self::Builder,
         config: &ffi::build_configuration,
-    ) -> f64 {
+    ) -> Result<f64> {
         <$$STRUCT_NAME$$>::build(self, builder, config)
     }
 

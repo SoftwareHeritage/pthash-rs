@@ -84,7 +84,7 @@ impl<M: Minimality, H: Hasher, E: Encoder> Phf for SinglePhf<M, H, E> {
             };
             match res {
                 Ok(mut timings) => {
-                    timings.encoding_seconds = self.inner.pin_mut().build(&builder, &config);
+                    timings.encoding_seconds = self.inner.pin_mut().build(&builder, &config)?;
                     return Ok(BuildTimings::from_ffi(&timings));
                 }
                 Err(e) => {

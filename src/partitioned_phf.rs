@@ -75,7 +75,7 @@ impl<M: Minimality, H: Hasher, E: Encoder> Phf for PartitionedPhf<M, H, E> {
                 .build_from_hashes(hashes.as_ptr(), hashes.len() as u64, &config)
         }?;
 
-        timings.encoding_seconds = self.inner.pin_mut().build(&builder, &config);
+        timings.encoding_seconds = self.inner.pin_mut().build(&builder, &config)?;
         Ok(BuildTimings::from_ffi(&timings))
     }
 

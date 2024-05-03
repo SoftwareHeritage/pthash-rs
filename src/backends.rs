@@ -33,7 +33,7 @@ pub(crate) trait BackendPhf: Sized + cxx::memory::UniquePtrTarget {
         self: Pin<&mut Self>,
         builder: &Self::Builder,
         config: &ffi::build_configuration,
-    ) -> f64;
+    ) -> Result<f64>;
 
     unsafe fn save(self: Pin<&mut Self>, filename: *const i8) -> Result<usize>;
     unsafe fn load(self: Pin<&mut Self>, filename: *const i8) -> Result<usize>;
