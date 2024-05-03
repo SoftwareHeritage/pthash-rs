@@ -70,7 +70,7 @@ fn main_() -> Result<()> {
     let mut config = BuildConfiguration::new(temp_dir.path().to_owned());
     config.c = 6.0;
     config.alpha = 0.94;
-    config.minimal_output = true; // mphf
+    // config.minimal_output = true; // unlike the C++ API, this is implicit from f's type
     config.verbose_output = true;
 
     /* Declare the PTHash function. */

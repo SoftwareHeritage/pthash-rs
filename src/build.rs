@@ -138,8 +138,6 @@ pub(crate) mod ffi {
         #[rust_name = "build_configuration_set_tmp_dir"]
         fn set_tmp_dir(conf: &mut UniquePtr<build_configuration>, value: Pin<&mut CxxString>);
 
-        #[rust_name = "build_configuration_get_minimal_output"]
-        fn get_minimal_output(conf: &build_configuration) -> bool;
         #[rust_name = "build_configuration_set_minimal_output"]
         fn set_minimal_output(conf: &mut UniquePtr<build_configuration>, value: bool);
 
@@ -232,7 +230,6 @@ pub struct BuildConfiguration {
     pub seed: u64,
     pub ram: u64,
     pub tmp_dir: PathBuf,
-    pub minimal_output: bool,
     pub verbose_output: bool,
 }
 
@@ -248,13 +245,12 @@ impl BuildConfiguration {
             seed: ffi::build_configuration_get_seed(&defaults),
             ram: ffi::build_configuration_get_ram(&defaults),
             tmp_dir,
-            minimal_output: ffi::build_configuration_get_minimal_output(&defaults),
             verbose_output: ffi::build_configuration_get_verbose_output(&defaults),
         }
     }
 
     /// Returns pthash's native [`build_configuration`]
-    pub(crate) fn to_ffi(&self) -> UniquePtr<ffi::build_configuration> {
+    pub(crate) fn to_ffi(&self, minimal_output: bool) -> UniquePtr<ffi::build_configuration> {
         let mut conf = ffi::build_configuration_new();
         ffi::build_configuration_set_c(&mut conf, self.c);
         ffi::build_configuration_set_alpha(&mut conf, self.alpha);
@@ -265,7 +261,7 @@ impl BuildConfiguration {
         ffi::build_configuration_set_ram(&mut conf, self.ram);
         let_cxx_string!(tmp_dir = self.tmp_dir.as_os_str().as_encoded_bytes());
         ffi::build_configuration_set_tmp_dir(&mut conf, tmp_dir);
-        ffi::build_configuration_set_minimal_output(&mut conf, self.minimal_output);
+        ffi::build_configuration_set_minimal_output(&mut conf, minimal_output);
         ffi::build_configuration_set_verbose_output(&mut conf, self.verbose_output);
         conf
     }

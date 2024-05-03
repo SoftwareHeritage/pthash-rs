@@ -13,7 +13,6 @@ use pthash::*;
 fn test_partitioned<M: Minimality, H: Hasher, E: Encoder>() -> Result<()> {
     let temp_dir = tempfile::tempdir().context("Could not create temp dir")?;
     let mut config = BuildConfiguration::new(temp_dir.path().to_owned());
-    config.minimal_output = M::AS_BOOL;
     config.verbose_output = false;
 
     let keys: Vec<&[u8]> = vec!["abc".as_bytes(), "def".as_bytes(), "ghikl".as_bytes()];

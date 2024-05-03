@@ -29,7 +29,7 @@ use pthash::{
 
 let temp_dir = tempfile::tempdir().unwrap();
 let mut config = BuildConfiguration::new(temp_dir.path().to_owned());
-config.minimal_output = true;
+// config.minimal_output = true; // unlike the C++ API, this is implicit from f's type
 
 let keys: Vec<&[u8]> = vec!["abc".as_bytes(), "def".as_bytes(), "ghikl".as_bytes()];
 

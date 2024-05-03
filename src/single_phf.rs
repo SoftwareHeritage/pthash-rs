@@ -76,7 +76,7 @@ impl<M: Minimality, H: Hasher, E: Encoder> Phf for SinglePhf<M, H, E> {
             let mut config = (*config).clone();
             config.seed = seed;
 
-            let config = config.to_ffi();
+            let config = config.to_ffi(M::AS_BOOL);
             let res = unsafe {
                 builder
                     .pin_mut()

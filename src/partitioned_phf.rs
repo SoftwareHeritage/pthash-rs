@@ -68,7 +68,7 @@ impl<M: Minimality, H: Hasher, E: Encoder> Phf for PartitionedPhf<M, H, E> {
         let mut builder =
             <<M as SealedMinimality>::PartitionedPhfBackend<H::Hash, E> as BackendPhf>::Builder::new();
 
-        let config = config.to_ffi();
+        let config = config.to_ffi(M::AS_BOOL);
         let mut timings = unsafe {
             builder
                 .pin_mut()
