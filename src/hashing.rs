@@ -6,13 +6,11 @@
 //! Non-perfect hash algorithms underlying a PHF ([`MurmurHash2_64`] and
 //! [`MurmurHash2_128`])
 
-use autocxx::prelude::*;
-
 use crate::encoders::{BackendForEncoderByHash, Encoder};
 #[cfg(feature = "hash128")]
-use crate::structs::hash128;
+pub use crate::structs::hash128;
 #[cfg(feature = "hash64")]
-use crate::structs::hash64;
+pub use crate::structs::hash64;
 
 pub(crate) trait Hash: Sized {
     #[cfg(feature = "minimal")]
@@ -140,16 +138,7 @@ impl Hasher for MurmurHash2_64 {
     fn hash(val: impl Hashable, seed: u64) -> Self::Hash {
         let val = val.as_bytes();
         let val = val.as_ref();
-        moveit! {
-            let h = unsafe { hash64::new1(
-                ffi::MurmurHash2_64(
-                val.as_ptr() as *const ffi::c_void,
-                val.len(),
-                seed,
-                )
-            ) };
-        };
-        autocxx::moveit::MoveRef::into_inner(std::pin::Pin::into_inner(h))
+        unsafe { ffi::MurmurHash2_64(val.as_ptr() as *const ffi::c_void, val.len(), seed) }.into()
     }
 }
 
@@ -170,20 +159,12 @@ impl Hasher for MurmurHash2_128 {
     fn hash(val: impl Hashable, seed: u64) -> Self::Hash {
         let val = val.as_bytes();
         let val = val.as_ref();
-        moveit! {
-            let h = unsafe { hash128::new1(
-                ffi::MurmurHash2_64(
-                    val.as_ptr() as *const ffi::c_void,
-                    val.len(),
-                    seed,
-                ),
-                ffi::MurmurHash2_64(
-                    val.as_ptr() as *const ffi::c_void,
-                    val.len(),
-                    !seed,
-                ),
-            ) };
-        };
-        autocxx::moveit::MoveRef::into_inner(std::pin::Pin::into_inner(h))
+        unsafe {
+            (
+                ffi::MurmurHash2_64(val.as_ptr() as *const ffi::c_void, val.len(), seed),
+                ffi::MurmurHash2_64(val.as_ptr() as *const ffi::c_void, val.len(), !seed),
+            )
+        }
+        .into()
     }
 }

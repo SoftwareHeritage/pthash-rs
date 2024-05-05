@@ -22,7 +22,10 @@ use pthash::*;
 
 macro_rules! impl_test {
     ($test_name:ident, $struct_name:ident) => {
-        fn $test_name<M: Minimality, H: Hasher, E: Encoder>(mut num_keys: u64, num_partitions: u64) -> Result<()> {
+        fn $test_name<M: Minimality, H: Hasher, E: Encoder>(
+            mut num_keys: u64,
+            num_partitions: u64,
+        ) -> Result<()> {
             let temp_dir = tempfile::tempdir().context("Could not create temp dir")?;
             let phf_path = temp_dir.path().join("phf.bin");
 
