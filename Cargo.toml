@@ -40,7 +40,6 @@ partitioned_compact = []
 elias_fano = []
 
 [dependencies]
-autocxx = "0.26.0"
 cxx = "1.0"
 log = "0.4.17"
 sux = { version = "0.3.1", optional = true }
@@ -49,8 +48,6 @@ thiserror = { version = "1.0.48", optional = true }
 
 [build-dependencies]
 thiserror = "1.0.48"
-autocxx-build = "0.26.0"
-autocxx-engine = "0.26.0"
 cxx-build = "1.0"
 
 [dev-dependencies]

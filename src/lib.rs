@@ -26,8 +26,6 @@ pub use minimality::*;
 mod partitioned_phf;
 pub use partitioned_phf::*;
 
-mod structs;
-
 mod single_phf;
 pub use single_phf::*;
 

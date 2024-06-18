@@ -7,10 +7,64 @@
 //! [`MurmurHash2_128`])
 
 use crate::encoders::{BackendForEncoderByHash, Encoder};
+
+#[cfg_attr(not(all(feature = "hash64", feature = "hash128")), allow(dead_code))]
+#[cxx::bridge]
+pub(crate) mod ffi {
+    struct hash64 {
+        first: u64,
+    }
+    struct hash128 {
+        first: u64,
+        second: u64,
+    }
+
+    /*
+    #[namespace = "pthash"]
+    unsafe extern "C++" {
+        include!("pthash.hpp");
+
+        fn first(self: &Hash64) -> u64;
+
+        fn first(self: &Hash128) -> u64;
+        fn second(self: &Hash128) -> u64;
+    }
+
+    #[namespace = "pthash_rs::utils"]
+    unsafe extern "C++" {
+        include!("pthash.hpp");
+        include!("cpp-utils.hpp");
+
+        #[cxx_name = "construct"]
+        fn hash64_new(hash: u64) -> hash64;
+    }*/
+
+    /*
+    struct byte_range {
+        begin: *const u8,
+        end: *const u8,
+    }
+    */
+
+    #[namespace = "pthash_rs::utils"]
+    unsafe extern "C++" {
+        include!("cpp-utils.hpp");
+
+        type c_void; // https://github.com/dtolnay/cxx/issues/1049#issuecomment-1312854737
+    }
+
+    #[namespace = "pthash"]
+    unsafe extern "C++" {
+        include!("pthash.hpp");
+
+        unsafe fn MurmurHash2_64(key: *const c_void, len: usize, seed: u64) -> u64;
+    }
+}
+
 #[cfg(feature = "hash128")]
-pub use crate::structs::hash128;
+pub use ffi::hash128;
 #[cfg(feature = "hash64")]
-pub use crate::structs::hash64;
+pub use ffi::hash64;
 
 pub(crate) trait Hash: Sized {
     #[cfg(feature = "minimal")]
@@ -100,28 +154,6 @@ pub trait Hasher {
     type Hash: Hash;
 
     fn hash(val: impl Hashable, seed: u64) -> Self::Hash;
-}
-
-#[cxx::bridge]
-mod ffi {
-    struct byte_range {
-        begin: *const u8,
-        end: *const u8,
-    }
-
-    #[namespace = "pthash_rs::utils"]
-    unsafe extern "C++" {
-        include!("cpp-utils.hpp");
-
-        type c_void; // https://github.com/dtolnay/cxx/issues/1049#issuecomment-1312854737
-    }
-
-    #[namespace = "pthash"]
-    unsafe extern "C++" {
-        include!("pthash.hpp");
-
-        unsafe fn MurmurHash2_64(key: *const c_void, len: usize, seed: u64) -> u64;
-    }
 }
 
 #[cfg(feature = "hash64")]

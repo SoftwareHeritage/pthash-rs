@@ -13,21 +13,29 @@ use std::time::Duration;
 use cxx::{let_cxx_string, Exception, UniquePtr};
 
 use crate::hashing::Hash;
-use crate::structs::build_timings;
 
 type Result<T> = std::result::Result<T, Exception>;
 
 #[cfg_attr(not(all(feature = "hash64", feature = "hash128")), allow(dead_code))]
 #[cxx::bridge]
 pub(crate) mod ffi {
+    /// Result of
+    /// [`build_in_internal_memory_from_bytes`](crate::Phf::build_in_internal_memory_from_bytes)
+    #[namespace = "pthash_rs::build"]
+    #[derive(Clone, Debug, PartialEq)]
+    pub struct build_timings_bridge {
+        pub partitioning_seconds: f64,
+        pub mapping_ordering_seconds: f64,
+        pub searching_seconds: f64,
+        pub encoding_seconds: f64,
+    }
+
     #[namespace = "pthash"]
     unsafe extern "C++" {
         include!("pthash.hpp");
 
         type build_configuration;
-        type build_timings = crate::structs::build_timings;
-        type hash64 = crate::structs::hash64;
-        type hash128 = crate::structs::hash128;
+        type build_timings;
     }
 
     #[namespace = "pthash_rs::concrete"]
@@ -48,45 +56,55 @@ pub(crate) mod ffi {
         fn internal_memory_builder_single_phf_64_new(
         ) -> UniquePtr<internal_memory_builder_single_phf_64>;
 
-        unsafe fn build_from_hashes(
-            self: Pin<&mut internal_memory_builder_single_phf_64>,
-            hashes: *const hash64,
-            num_keys: u64,
-            config: &build_configuration,
-        ) -> Result<build_timings>;
-
         #[cxx_name = "construct"]
         fn internal_memory_builder_single_phf_128_new(
         ) -> UniquePtr<internal_memory_builder_single_phf_128>;
-
-        unsafe fn build_from_hashes(
-            self: Pin<&mut internal_memory_builder_single_phf_128>,
-            hashes: *const hash128,
-            num_keys: u64,
-            config: &build_configuration,
-        ) -> Result<build_timings>;
 
         #[cxx_name = "construct"]
         fn internal_memory_builder_partitioned_phf_64_new(
         ) -> UniquePtr<internal_memory_builder_partitioned_phf_64>;
 
-        unsafe fn build_from_hashes(
-            self: Pin<&mut internal_memory_builder_partitioned_phf_64>,
-            hashes: *const hash64,
-            num_keys: u64,
-            config: &build_configuration,
-        ) -> Result<build_timings>;
-
         #[cxx_name = "construct"]
         fn internal_memory_builder_partitioned_phf_128_new(
         ) -> UniquePtr<internal_memory_builder_partitioned_phf_128>;
+    }
 
-        unsafe fn build_from_hashes(
-            self: Pin<&mut internal_memory_builder_partitioned_phf_128>,
+    #[namespace = "pthash_rs::converters"]
+    unsafe extern "C++" {
+        include!("pthash.hpp");
+        include!("cpp-utils.hpp");
+
+        #[cxx_name = "build_from_hashes"]
+        unsafe fn build_single_phf_64_from_hashes(
+            builder: Pin<&mut internal_memory_builder_single_phf_64>,
+            hashes: *const crate::hashing::ffi::hash64,
+            num_keys: u64,
+            config: &build_configuration,
+        ) -> Result<build_timings_bridge>;
+
+        #[cxx_name = "build_from_hashes"]
+        unsafe fn build_single_phf_128_from_hashes(
+            builder: Pin<&mut internal_memory_builder_single_phf_128>,
             hashes: *const hash128,
             num_keys: u64,
             config: &build_configuration,
-        ) -> Result<build_timings>;
+        ) -> Result<build_timings_bridge>;
+
+        #[cxx_name = "build_from_hashes"]
+        unsafe fn build_partitioned_phf_64_from_hashes(
+            builder: Pin<&mut internal_memory_builder_partitioned_phf_64>,
+            hashes: *const hash64,
+            num_keys: u64,
+            config: &build_configuration,
+        ) -> Result<build_timings_bridge>;
+
+        #[cxx_name = "build_from_hashes"]
+        unsafe fn build_partitioned_phf_128_from_hashes(
+            builder: Pin<&mut internal_memory_builder_partitioned_phf_128>,
+            hashes: *const hash128,
+            num_keys: u64,
+            config: &build_configuration,
+        ) -> Result<build_timings_bridge>;
     }
 
     #[namespace = "pthash_rs::utils"]
@@ -167,11 +185,11 @@ pub(crate) trait Builder: Sized + cxx::memory::UniquePtrTarget {
         hashes: *const Self::Hash,
         num_keys: u64,
         config: &ffi::build_configuration,
-    ) -> Result<build_timings>;
+    ) -> Result<ffi::build_timings_bridge>;
 }
 
 macro_rules! impl_builder {
-    ($type:ty, $hash:ty, $new:path,) => {
+    ($type:ty, $hash:ty, $new:path, $build:path,) => {
         impl Builder for $type {
             type Hash = $hash;
 
@@ -183,8 +201,8 @@ macro_rules! impl_builder {
                 hashes: *const Self::Hash,
                 num_keys: u64,
                 config: &ffi::build_configuration,
-            ) -> Result<build_timings> {
-                <$type>::build_from_hashes(self, hashes, num_keys, config)
+            ) -> Result<ffi::build_timings_bridge> {
+                $build(self, hashes, num_keys, config)
             }
         }
     };
@@ -195,6 +213,7 @@ impl_builder!(
     internal_memory_builder_single_phf_64,
     hash64,
     ffi::internal_memory_builder_single_phf_64_new,
+    ffi::build_single_phf_64_from_hashes,
 );
 
 #[cfg(feature = "hash128")]
@@ -202,6 +221,7 @@ impl_builder!(
     internal_memory_builder_single_phf_128,
     hash128,
     ffi::internal_memory_builder_single_phf_128_new,
+    ffi::build_single_phf_128_from_hashes,
 );
 
 #[cfg(feature = "hash64")]
@@ -209,6 +229,7 @@ impl_builder!(
     internal_memory_builder_partitioned_phf_64,
     hash64,
     ffi::internal_memory_builder_partitioned_phf_64_new,
+    ffi::build_partitioned_phf_64_from_hashes,
 );
 
 #[cfg(feature = "hash128")]
@@ -216,6 +237,7 @@ impl_builder!(
     internal_memory_builder_partitioned_phf_128,
     hash128,
     ffi::internal_memory_builder_partitioned_phf_128_new,
+    ffi::build_partitioned_phf_128_from_hashes,
 );
 
 /// Parameter of
@@ -278,7 +300,7 @@ pub struct BuildTimings {
 }
 
 impl BuildTimings {
-    pub(crate) fn from_ffi(timings: &build_timings) -> Self {
+    pub(crate) fn from_ffi(timings: &ffi::build_timings_bridge) -> Self {
         BuildTimings {
             partitioning_seconds: Duration::from_secs_f64(timings.partitioning_seconds),
             mapping_ordering_seconds: Duration::from_secs_f64(timings.mapping_ordering_seconds),

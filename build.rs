@@ -19,8 +19,8 @@ mod ffi {
         include!("pthash.hpp");
 
         type build_configuration = crate::build::ffi::build_configuration;
-        type hash64 = crate::structs::hash64;
-        type hash128 = crate::structs::hash128;
+        type hash64 = crate::hashing::hash64;
+        type hash128 = crate::hashing::hash128;
     }
 
     #[namespace = "pthash_rs::concrete"]
@@ -144,8 +144,6 @@ impl BackendPhf for $$STRUCT_NAME$$ {
 
 #[derive(Error, Debug)]
 pub enum BuildError {
-    #[error("autocxx engine error: {0}")]
-    AutoCxxBuilder(#[from] autocxx_engine::BuilderError),
     #[error("could not create {0}: {1}")]
     CreateFile(PathBuf, std::io::Error),
     #[error("could not write to {0}: {1}")]
@@ -169,22 +167,9 @@ fn main_() -> Result<(), BuildError> {
     let manifest_dir =
         Path::new(&std::env::var("CARGO_MANIFEST_DIR").expect("Missing CARGO_MANIFEST_DIR"))
             .to_owned();
-    let pthash_src_dir = Path::new(&manifest_dir).join("pthash");
+    let pthash_src_dir = Path::new(&manifest_dir).join("..").join("pthash");
     let pthash_src_dir = pthash_src_dir.as_path();
     let out_dir = Path::new(&std::env::var("OUT_DIR").expect("Missing OUT_DIR")).to_owned();
-
-    let mut b = autocxx_build::Builder::new(
-        "src/structs.rs",
-        &[
-            &manifest_dir.join("src"),
-            pthash_src_dir,
-            &pthash_src_dir.join("include/"),
-            &pthash_src_dir.join("external/essentials/include/"),
-        ],
-    )
-    .extra_clang_args(&["-std=c++17"])
-    .build()?;
-    b.flag("-std=c++17").compile("pthash-ffi");
 
     let backends_path = out_dir.join("backends_codegen.rs.inc");
 
@@ -222,7 +207,6 @@ fn main_() -> Result<(), BuildError> {
     for module in BRIDGE_MODULES {
         println!("cargo:rerun-if-changed={}", module);
     }
-    println!("cargo:rerun-if-changed=src/structs.rs");
     println!("cargo:rerun-if-changed=src/cpp-utils.hpp");
     println!("cargo:rerun-if-changed=src/concrete.hpp");
 

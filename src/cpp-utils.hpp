@@ -9,6 +9,8 @@
 
 #include <pthash.hpp>
 
+#include "pthash/src/build.rs.h"
+
 #define getter(name) \
     template<typename T, typename Ret> \
     Ret \
@@ -99,6 +101,17 @@ namespace pthash_rs {
         gettersetter(minimal_output)
         gettersetter(verbose_output)
     }
+
+    namespace converters {
+        template<typename Builder, typename Hash>
+        ::pthash_rs::build::build_timings_bridge build_from_hashes(Builder& builder, const Hash* hashes, uint64_t num_keys, const pthash::build_configuration &config) {
+            pthash::build_timings timings = builder.build_from_hashes(hashes, num_keys, config);
+            pthash_rs::build::build_timings_bridge timings_bridge;
+            timings_bridge.partitioning_seconds = timings.partitioning_seconds;
+            timings_bridge.mapping_ordering_seconds = timings.mapping_ordering_seconds;
+            timings_bridge.searching_seconds = timings.searching_seconds;
+            timings_bridge.encoding_seconds = timings.encoding_seconds;
+            return timings_bridge;
+        }
+    }
 }
-
-

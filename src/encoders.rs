@@ -9,9 +9,9 @@
 
 use crate::hashing::Hash;
 #[cfg(feature = "hash128")]
-use crate::structs::hash128;
+use crate::hashing::hash128;
 #[cfg(feature = "hash64")]
-use crate::structs::hash64;
+use crate::hashing::hash64;
 
 #[cfg(all(feature = "hash64", feature = "hash128"))]
 #[allow(private_bounds)] // Users shouldn't be able to impl the Encoder trait
