@@ -7,6 +7,16 @@ perfect-hash functions using:
 Conference on Research and Development in Information Retrieval (SIGIR). 2021.
 * Giulio Ermanno Pibiri and Roberto Trani. [*"Parallel and External-Memory Construction of Minimal Perfect Hash Functions with PTHash"*](https://ieeexplore.ieee.org/document/10210677). Transactions on Knowledge and Data Engineering (TKDE). 2023.
 
+## Building
+
+```
+apt install build-essential libclang-dev
+git clone https://gitlab.softwareheritage.org/swh/devel/pthash-rs.git
+cd pthash-rs
+git submodule update --init --recursive
+cargo build
+```
+
 ## Internal code structure
 
 Due to C++ templates being closer to macros than to Rust generics, every possible instantiation
