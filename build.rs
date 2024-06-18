@@ -213,6 +213,7 @@ fn main_() -> Result<(), BuildError> {
     bridge_modules.push(backends_path.display().to_string());
 
     cxx_build::bridges(bridge_modules)
+        .flag("-std=c++17")
         .include("src")
         .include(pthash_src_dir)
         .include(&pthash_src_dir.join("include/"))
