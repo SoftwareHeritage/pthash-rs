@@ -17,6 +17,17 @@ git submodule update --init --recursive
 cargo build
 ```
 
+If you get a panic at build time with message `Non floating-type complex? Type(_Complex _Float16, kind: Complex`,
+this is due to [a bug in autocxx-bindgen](https://github.com/google/autocxx/issues/1341).
+Here is a workaround, to add to your root `Cargo.toml` to [override the autocxx-bindgen
+dependency](https://doc.rust-lang.org/cargo/reference/overriding-dependencies.html)
+to a fork with a cherry-picked patch:
+
+```
+[patch.crates-io]
+autocxx-bindgen = { git = "https://gitlab.softwareheritage.org/vlorentz/rust-bindgen.git", rev = "fe69d3e4f51b9d586f56f930ac8c7a17ad35dc62" }
+```
+
 ## Internal code structure
 
 Due to C++ templates being closer to macros than to Rust generics, every possible instantiation
