@@ -11,8 +11,10 @@ use anyhow::{Context, Result};
 
 use pthash::*;
 
+#[cfg(feature = "hash64")]
 struct CustomHasher64;
 
+#[cfg(feature = "hash64")]
 impl pthash::Hasher for CustomHasher64 {
     type Hash = hashing::hash64;
 
@@ -25,8 +27,10 @@ impl pthash::Hasher for CustomHasher64 {
     }
 }
 
+#[cfg(feature = "hash128")]
 struct CustomHasher128;
 
+#[cfg(feature = "hash128")]
 impl pthash::Hasher for CustomHasher128 {
     type Hash = hashing::hash128;
 
@@ -50,7 +54,7 @@ fn test_single<M: Minimality, H: pthash::Hasher, E: Encoder>() -> Result<()> {
 
     let keys: Vec<&[u8]> = vec!["abc".as_bytes(), "def".as_bytes(), "ghikl".as_bytes()];
 
-    let mut f = SinglePhf::<M, MurmurHash2_64, DictionaryDictionary>::new();
+    let mut f = SinglePhf::<M, H, E>::new();
     f.build_in_internal_memory_from_bytes(&keys, &config)
         .context("Failed to build")?;
 

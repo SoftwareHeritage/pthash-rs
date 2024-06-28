@@ -120,7 +120,8 @@ macro_rules! impl_test {
                 assert_ne!(hashes, Vec::from_iter(0..num_keys));
 
                 // Hashing an object that wasn't provided when building the function may collide
-                assert!(f.hash(b"not_a_key".as_bytes()) < *hashes.last().unwrap());
+                // or exceed the maximum
+                assert!(f.hash(b"not_a_key".as_bytes()) < *hashes.last().unwrap() * 1000);
             }
 
             Ok(())

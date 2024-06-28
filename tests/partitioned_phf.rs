@@ -17,7 +17,7 @@ fn test_partitioned<M: Minimality, H: Hasher, E: Encoder>() -> Result<()> {
 
     let keys: Vec<&[u8]> = vec!["abc".as_bytes(), "def".as_bytes(), "ghikl".as_bytes()];
 
-    let mut f = PartitionedPhf::<M, MurmurHash2_64, DictionaryDictionary>::new();
+    let mut f = PartitionedPhf::<M, H, E>::new();
     f.build_in_internal_memory_from_bytes(&keys, &config)
         .context("Failed to build")?;
 

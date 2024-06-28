@@ -3,6 +3,7 @@ name = "pthash"
 version = "0.2.0"
 edition = "2021"
 description = "Rust bindings for PTHash"
+rust-version = "1.76"
 
 license = "GPL-3.0-or-later"
 

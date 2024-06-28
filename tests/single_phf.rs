@@ -17,7 +17,7 @@ fn test_single<M: Minimality, H: Hasher, E: Encoder>() -> Result<()> {
 
     let keys: Vec<&[u8]> = vec!["abc".as_bytes(), "def".as_bytes(), "ghikl".as_bytes()];
 
-    let mut f = SinglePhf::<M, MurmurHash2_64, DictionaryDictionary>::new();
+    let mut f = SinglePhf::<M, H, E>::new();
     f.build_in_internal_memory_from_bytes(&keys, &config)
         .context("Failed to build")?;
 

@@ -1,0 +1,102 @@
+variables:
+  GIT_SUBMODULE_STRATEGY: recursive
+  GIT_SUBMODULE_UPDATE_FLAGS: --jobs 4
+
+
+stages:
+  - test
+
+rust-latest-default-features:
+  stage: test
+  image: docker.io/library/rust:latest
+  cache:
+    - &apt_cache
+      key: apt
+      paths:
+        - /var/cache/apt/
+        - /var/lib/apt/
+    - &pthash_exe_cache
+      key: pthash-exe
+      paths:
+        - pthash/build/
+    - key: rust-latest-default-features
+      paths:
+        - target/
+  script:
+    - apt-get update
+    - apt-get install -y libclang-dev cmake
+    - cargo build
+    - mkdir pthash/build/ && cmake -DCMAKE_BUILD_TYPE=Debug -S pthash/ -B pthash/build/ && make -C pthash/build/ -j$(nproc)  # one of the tests needs pthash's `build` executable
+    - cargo test
+
+rust-latest-some-features 1/2:
+  stage: test
+  image: docker.io/library/rust:latest
+  cache:
+    - key: rust-latest-some-features-1
+      paths:
+        - target/
+    - *apt_cache
+    - *pthash_exe_cache
+  script:
+    - apt-get update
+    - apt-get install -y libclang-dev cmake
+    - cargo build
+    - mkdir pthash/build/ && cmake -DCMAKE_BUILD_TYPE=Debug -S pthash/ -B pthash/build/ && make -C pthash/build/ -j$(nproc)  # one of the tests needs pthash's `build` executable
+    - cargo test --no-default-features --features=minimal,hash64,dictionary_dictionary
+
+rust-latest-some-features 2/2:
+  stage: test
+  image: docker.io/library/rust:latest
+  cache:
+    - key: rust-latest-some-features-2
+      paths:
+        - target/
+    - *apt_cache
+    - *pthash_exe_cache
+  script:
+    - apt-get update
+    - apt-get install -y libclang-dev cmake
+    - cargo build
+    - mkdir pthash/build/ && cmake -DCMAKE_BUILD_TYPE=Debug -S pthash/ -B pthash/build/ && make -C pthash/build/ -j$(nproc)  # one of the tests needs pthash's `build` executable
+    - cargo test --no-default-features --features=nonminimal,hash128,elias_fano
+
+rust-1.76-default-features:
+  stage: test
+  image: docker.io/library/rust:1.76
+  cache:
+    - &apt_cache
+      key: apt
+      paths:
+        - /var/cache/apt/
+        - /var/lib/apt/
+    - &pthash_exe_cache
+      key: pthash-exe
+      paths:
+        - pthash/build/
+    - key: rust-1.76-default-features
+      paths:
+        - target/
+  script:
+    - apt-get update
+    - apt-get install -y libclang-dev cmake
+    - cargo build
+    - mkdir pthash/build/ && cmake -DCMAKE_BUILD_TYPE=Debug -S pthash/ -B pthash/build/ && make -C pthash/build/ -j$(nproc)  # one of the tests needs pthash's `build` executable
+    - cargo test
+
+rust-nightly-default-features:
+  stage: test
+  image: docker.io/rustlang/rust:nightly
+  cache:
+    - key: rust-nightly-default-features
+      paths:
+        - target/
+    - *apt_cache
+    - *pthash_exe_cache
+  script:
+    - apt-get update
+    - apt-get install -y libclang-dev cmake
+    - cargo build
+    - mkdir pthash/build/ && cmake -DCMAKE_BUILD_TYPE=Debug -S pthash/ -B pthash/build/ && make -C pthash/build/ -j$(nproc)  # one of the tests needs pthash's `build` executable
+    - cargo test
+  allow_failure: true

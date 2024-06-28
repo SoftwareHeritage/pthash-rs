@@ -3,7 +3,7 @@
 // License: GNU General Public License version 3, or any later version
 // See top-level LICENSE file for more information
 
-#![doc = include_str!("../README.md")]
+#![cfg_attr(all(feature = "minimal", feature = "nonminimal", feature = "dictionary_dictionary", feature = "hash64"), doc = include_str!("../README.md"))]
 
 use std::path::Path;
 

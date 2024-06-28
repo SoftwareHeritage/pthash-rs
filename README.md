@@ -9,7 +9,7 @@ Conference on Research and Development in Information Retrieval (SIGIR). 2021.
 
 ## Building
 
-```
+```ignore
 apt install build-essential libclang-dev
 git clone https://gitlab.softwareheritage.org/swh/devel/pthash-rs.git
 cd pthash-rs
@@ -23,7 +23,7 @@ Here is a workaround, to add to your root `Cargo.toml` to [override the autocxx-
 dependency](https://doc.rust-lang.org/cargo/reference/overriding-dependencies.html)
 to a fork with a cherry-picked patch:
 
-```
+```ignore
 [patch.crates-io]
 autocxx-bindgen = { git = "https://gitlab.softwareheritage.org/vlorentz/rust-bindgen.git", rev = "fe69d3e4f51b9d586f56f930ac8c7a17ad35dc62" }
 ```
