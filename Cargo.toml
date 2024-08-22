@@ -13,8 +13,8 @@ authors = [
 readme = "README.md"
 homepage = "https://gitlab.softwareheritage.org/swh/devel/pthash-rs"
 repository = "https://gitlab.softwareheritage.org/swh/devel/pthash-rs"
-keywords = ["orc", "apache-orc", "proc-macros"]
-categories = ["encoding", "parser-implementations"]
+keywords = ["hashing", "mph", "mphf", "dictionary", "map"]
+categories = ["compression", "api-bindings", "data-structures"]
 
 [features]
 default = ["default_minimalities", "default_encoders", "default_hash_sizes"]
