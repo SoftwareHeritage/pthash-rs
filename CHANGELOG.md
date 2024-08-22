@@ -1,3 +1,9 @@
+# v0.3.3
+
+*2024-08-22*
+
+* Fix homepage/repository URL
+
 # v0.3.2
 
 *2024-08-13*
