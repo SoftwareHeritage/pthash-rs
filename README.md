@@ -9,7 +9,7 @@ Conference on Research and Development in Information Retrieval (SIGIR). 2021.
 
 ## Building
 
-```ignore
+```text
 apt install build-essential libclang-dev
 git clone https://gitlab.softwareheritage.org/swh/devel/pthash-rs.git
 cd pthash-rs
