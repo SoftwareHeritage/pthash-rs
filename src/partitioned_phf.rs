@@ -11,6 +11,8 @@ use std::path::Path;
 //use autocxx::prelude::*;
 use cxx::{Exception, UniquePtr};
 use rand::Rng;
+#[cfg(feature = "rayon")]
+use rayon::prelude::*;
 
 use crate::backends::BackendPhf;
 use crate::build::{BuildConfiguration, BuildTimings, Builder};
@@ -39,18 +41,11 @@ impl<M: Minimality, H: Hasher, E: Encoder> PartitionedPhf<M, H, E> {
     }
 }
 
-impl<M: Minimality, H: Hasher, E: Encoder> Phf for PartitionedPhf<M, H, E> {
-    const MINIMAL: bool = M::AS_BOOL;
+macro_rules! build_in_internal_memory_from_bytes {
+    ($self:expr, $keys:expr, $config:expr, $into_iter:ident) => {{
+        let keys = $keys;
+        let config = $config;
 
-    fn build_in_internal_memory_from_bytes<Keys: IntoIterator>(
-        &mut self,
-        keys: Keys,
-        config: &BuildConfiguration,
-    ) -> Result<BuildTimings, Exception>
-    where
-        <Keys as IntoIterator>::IntoIter: ExactSizeIterator + Clone,
-        <<Keys as IntoIterator>::IntoIter as Iterator>::Item: Hashable,
-    {
         // This is a Rust rewrite of internal_memory_builder_partitioned_phf::build_from_keys
         // so we can use generics
 
@@ -59,11 +54,9 @@ impl<M: Minimality, H: Hasher, E: Encoder> Phf for PartitionedPhf<M, H, E> {
             let mut rng = rand::thread_rng();
             config.seed = rng.gen();
         }
-        self.seed = config.seed;
+        $self.seed = config.seed;
 
-        let keys = keys.into_iter();
-
-        let hashes: Vec<_> = keys.clone().map(|key| H::hash(key, config.seed)).collect();
+        let hashes: Vec<_> = keys.$into_iter().map(|key| H::hash(key, config.seed)).collect();
 
         let mut builder =
             <<M as SealedMinimality>::PartitionedPhfBackend<H::Hash, E> as BackendPhf>::Builder::new();
@@ -75,8 +68,36 @@ impl<M: Minimality, H: Hasher, E: Encoder> Phf for PartitionedPhf<M, H, E> {
                 .build_from_hashes(hashes.as_ptr(), hashes.len() as u64, &config)
         }?;
 
-        timings.encoding_seconds = self.inner.pin_mut().build(&builder, &config)?;
+        timings.encoding_seconds = $self.inner.pin_mut().build(&builder, &config)?;
         Ok(BuildTimings::from_ffi(&timings))
+    }}
+}
+
+impl<M: Minimality, H: Hasher, E: Encoder> Phf for PartitionedPhf<M, H, E>
+{
+    const MINIMAL: bool = M::AS_BOOL;
+
+    fn build_in_internal_memory_from_bytes<Keys: IntoIterator>(
+        &mut self,
+        keys: Keys,
+        config: &BuildConfiguration,
+    ) -> Result<BuildTimings, Exception>
+    where
+        <<Keys as IntoIterator>::IntoIter as Iterator>::Item: Hashable,
+    {
+        build_in_internal_memory_from_bytes!(self, keys, config, into_iter)
+    }
+
+    #[cfg(feature = "rayon")]
+    fn par_build_in_internal_memory_from_bytes<Keys: IntoParallelIterator>(
+        &mut self,
+        keys: Keys,
+        config: &BuildConfiguration,
+    ) -> Result<BuildTimings, Exception>
+    where
+        <<Keys as IntoParallelIterator>::Iter as ParallelIterator>::Item: Hashable,
+    {
+        build_in_internal_memory_from_bytes!(self, keys, config, into_par_iter)
     }
 
     fn hash(&self, key: impl Hashable) -> u64 {

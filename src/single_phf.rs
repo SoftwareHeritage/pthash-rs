@@ -11,6 +11,8 @@ use std::path::Path;
 //use autocxx::prelude::*;
 use cxx::{Exception, UniquePtr};
 use rand::Rng;
+#[cfg(feature = "rayon")]
+use rayon::prelude::*;
 
 use crate::backends::BackendPhf;
 use crate::build::{BuildConfiguration, BuildTimings, Builder};
@@ -40,18 +42,11 @@ impl<M: Minimality, H: Hasher, E: Encoder> SinglePhf<M, H, E> {
     }
 }
 
-impl<M: Minimality, H: Hasher, E: Encoder> Phf for SinglePhf<M, H, E> {
-    const MINIMAL: bool = M::AS_BOOL;
+macro_rules! build_in_internal_memory_from_bytes {
+    ($self:expr, $keys:expr, $config:expr, $into_iter:ident) => {{
+        let keys = $keys;
+        let config = $config;
 
-    fn build_in_internal_memory_from_bytes<Keys: IntoIterator>(
-        &mut self,
-        keys: Keys,
-        config: &BuildConfiguration,
-    ) -> Result<BuildTimings, Exception>
-    where
-        <Keys as IntoIterator>::IntoIter: ExactSizeIterator + Clone,
-        <<Keys as IntoIterator>::IntoIter as Iterator>::Item: Hashable,
-    {
         // This is a Rust rewrite of internal_memory_builder_single_phf::build_from_keys
         // so we can use generics
 
@@ -62,12 +57,12 @@ impl<M: Minimality, H: Hasher, E: Encoder> Phf for SinglePhf<M, H, E> {
             (0..10).map(|_| rng.gen()).collect()
         };
 
-        let keys = keys.into_iter();
+        let keys = keys.$into_iter();
 
         let mut last_error = None;
         for (i, seed) in seeds.into_iter().enumerate() {
             let hashes: Vec<_> = keys.clone().map(|key| H::hash(key, seed)).collect();
-            self.seed = seed;
+            $self.seed = seed;
 
             let mut builder =
                 <<M as SealedMinimality>::SinglePhfBackend<H::Hash, E> as BackendPhf>::Builder::new(
@@ -84,7 +79,7 @@ impl<M: Minimality, H: Hasher, E: Encoder> Phf for SinglePhf<M, H, E> {
             };
             match res {
                 Ok(mut timings) => {
-                    timings.encoding_seconds = self.inner.pin_mut().build(&builder, &config)?;
+                    timings.encoding_seconds = $self.inner.pin_mut().build(&builder, &config)?;
                     return Ok(BuildTimings::from_ffi(&timings));
                 }
                 Err(e) => {
@@ -97,6 +92,35 @@ impl<M: Minimality, H: Hasher, E: Encoder> Phf for SinglePhf<M, H, E> {
 
         // All seeds failed
         Err(last_error.unwrap())
+    }}
+}
+
+impl<M: Minimality, H: Hasher, E: Encoder> Phf for SinglePhf<M, H, E> {
+    const MINIMAL: bool = M::AS_BOOL;
+
+    fn build_in_internal_memory_from_bytes<Keys: IntoIterator>(
+        &mut self,
+        keys: Keys,
+        config: &BuildConfiguration,
+    ) -> Result<BuildTimings, Exception>
+    where
+        <Keys as IntoIterator>::IntoIter: Clone,
+        <<Keys as IntoIterator>::IntoIter as Iterator>::Item: Hashable,
+    {
+        build_in_internal_memory_from_bytes!(self, keys, config, into_iter)
+    }
+
+    #[cfg(feature = "rayon")]
+    fn par_build_in_internal_memory_from_bytes<Keys: IntoParallelIterator>(
+        &mut self,
+        keys: Keys,
+        config: &BuildConfiguration,
+    ) -> Result<BuildTimings, Exception>
+    where
+        <Keys as IntoParallelIterator>::Iter: Clone,
+        <<Keys as IntoParallelIterator>::Iter as ParallelIterator>::Item: Hashable,
+    {
+        build_in_internal_memory_from_bytes!(self, keys, config, into_par_iter)
     }
 
     fn hash(&self, key: impl Hashable) -> u64 {

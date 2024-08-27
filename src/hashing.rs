@@ -97,7 +97,7 @@ impl Hashable for u64 {
 /// a PTHash perfect hash function.
 pub trait Hasher {
     #[allow(private_bounds)] // Users shouldn't be able to impl the Hash trait
-    type Hash: Hash;
+    type Hash: Hash + Send;
 
     fn hash(val: impl Hashable, seed: u64) -> Self::Hash;
 }

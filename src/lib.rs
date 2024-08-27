@@ -8,6 +8,8 @@
 use std::path::Path;
 
 use cxx::Exception;
+#[cfg(feature = "rayon")]
+use rayon::prelude::*;
 
 pub mod build;
 pub use build::*;
@@ -51,8 +53,19 @@ pub trait Phf: Sized + Send + Sync {
         config: &BuildConfiguration,
     ) -> Result<BuildTimings, Exception>
     where
-        <Keys as IntoIterator>::IntoIter: ExactSizeIterator + Clone,
+        <Keys as IntoIterator>::IntoIter: Clone,
         <<Keys as IntoIterator>::IntoIter as Iterator>::Item: Hashable;
+
+    #[cfg(feature = "rayon")]
+    /// Same as [`Self::build_in_internal_memory_from_bytes`], but hashes in parallel
+    fn par_build_in_internal_memory_from_bytes<Keys: IntoParallelIterator>(
+        &mut self,
+        keys: Keys,
+        config: &BuildConfiguration,
+    ) -> Result<BuildTimings, Exception>
+    where
+        <Keys as IntoParallelIterator>::Iter: Clone,
+        <<Keys as IntoParallelIterator>::Iter as ParallelIterator>::Item: Hashable;
 
     /// Returns the hash of the given key
     ///

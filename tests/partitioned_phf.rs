@@ -17,17 +17,30 @@ fn test_partitioned<M: Minimality, H: Hasher, E: Encoder>() -> Result<()> {
 
     let keys: Vec<&[u8]> = vec!["abc".as_bytes(), "def".as_bytes(), "ghikl".as_bytes()];
 
+    let check = |f: PartitionedPhf::<M, H, E>| -> Result<()> {
+        // Hashes are unique
+        let mut hashes: Vec<u64> = keys.iter().map(|key| f.hash(key)).collect();
+        hashes.sort();
+        assert_eq!(hashes, vec![0, 1, 2]);
+
+        // Hashing an object that wasn't provided when building the function collides
+        assert!(f.hash(b"not_a_key".as_bytes()) < 3);
+
+        Ok(())
+    };
+
     let mut f = PartitionedPhf::<M, H, E>::new();
     f.build_in_internal_memory_from_bytes(&keys, &config)
         .context("Failed to build")?;
+    check(f)?;
 
-    // Hashes are unique
-    let mut hashes: Vec<u64> = keys.iter().map(|key| f.hash(key)).collect();
-    hashes.sort();
-    assert_eq!(hashes, vec![0, 1, 2]);
-
-    // Hashing an object that wasn't provided when building the function collides
-    assert!(f.hash(b"not_a_key".as_bytes()) < 3);
+    #[cfg(feature = "rayon")]
+    {
+        let mut f = PartitionedPhf::<M, H, E>::new();
+        f.par_build_in_internal_memory_from_bytes(&keys, &config)
+            .context("Failed to build")?;
+        check(f)?;
+    }
 
     Ok(())
 }
