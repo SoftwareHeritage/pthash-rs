@@ -44,7 +44,7 @@ let mut config = BuildConfiguration::new(temp_dir.path().to_owned());
 let keys: Vec<&[u8]> = vec!["abc".as_bytes(), "def".as_bytes(), "ghikl".as_bytes()];
 
 let mut f = SinglePhf::<Minimal, MurmurHash2_64, DictionaryDictionary>::new();
-f.build_in_internal_memory_from_bytes(&keys, &config).expect("Failed to build");
+f.build_in_internal_memory_from_bytes(|| &keys, &config).expect("Failed to build");
 
 // Hashes are unique and in the [0; 3) segment
 let mut hashes: Vec<u64> = keys.iter().map(|key| f.hash(key)).collect();
@@ -68,7 +68,7 @@ let mut config = BuildConfiguration::new(temp_dir.path().to_owned());
 let keys: Vec<&[u8]> = vec!["abc".as_bytes(), "def".as_bytes(), "ghikl".as_bytes()];
 
 let mut f = SinglePhf::<Nonminimal, MurmurHash2_64, DictionaryDictionary>::new();
-f.build_in_internal_memory_from_bytes(&keys, &config).expect("Failed to build");
+f.build_in_internal_memory_from_bytes(|| &keys, &config).expect("Failed to build");
 
 // Hashes are unique
 let mut hashes: Vec<u64> = keys.iter().map(|key| f.hash(key)).collect();

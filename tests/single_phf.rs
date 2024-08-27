@@ -30,14 +30,14 @@ fn test_single<M: Minimality, H: Hasher, E: Encoder>() -> Result<()> {
     };
 
     let mut f = SinglePhf::<M, H, E>::new();
-    f.build_in_internal_memory_from_bytes(&keys, &config)
+    f.build_in_internal_memory_from_bytes(|| &keys, &config)
         .context("Failed to build")?;
     check(f)?;
 
     #[cfg(feature = "rayon")]
     {
         let mut f = SinglePhf::<M, H, E>::new();
-        f.par_build_in_internal_memory_from_bytes(&keys, &config)
+        f.par_build_in_internal_memory_from_bytes(|| &keys, &config)
             .context("Failed to build")?;
         check(f)?;
     }

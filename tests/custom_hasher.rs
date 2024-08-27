@@ -55,7 +55,7 @@ fn test_single<M: Minimality, H: pthash::Hasher, E: Encoder>() -> Result<()> {
     let keys: Vec<&[u8]> = vec!["abc".as_bytes(), "def".as_bytes(), "ghikl".as_bytes()];
 
     let mut f = SinglePhf::<M, H, E>::new();
-    f.build_in_internal_memory_from_bytes(&keys, &config)
+    f.build_in_internal_memory_from_bytes(|| &keys, &config)
         .context("Failed to build")?;
 
     // Hashes are unique

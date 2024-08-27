@@ -44,7 +44,7 @@ impl<M: Minimality, H: Hasher, E: Encoder> SinglePhf<M, H, E> {
 
 macro_rules! build_in_internal_memory_from_bytes {
     ($self:expr, $keys:expr, $config:expr, $into_iter:ident) => {{
-        let keys = $keys;
+        let mut keys = $keys;
         let config = $config;
 
         // This is a Rust rewrite of internal_memory_builder_single_phf::build_from_keys
@@ -57,11 +57,10 @@ macro_rules! build_in_internal_memory_from_bytes {
             (0..10).map(|_| rng.gen()).collect()
         };
 
-        let keys = keys.$into_iter();
 
         let mut last_error = None;
         for (i, seed) in seeds.into_iter().enumerate() {
-            let hashes: Vec<_> = keys.clone().map(|key| H::hash(key, seed)).collect();
+            let hashes: Vec<_> = keys().$into_iter().map(|key| H::hash(key, seed)).collect();
             $self.seed = seed;
 
             let mut builder =
@@ -100,11 +99,10 @@ impl<M: Minimality, H: Hasher, E: Encoder> Phf for SinglePhf<M, H, E> {
 
     fn build_in_internal_memory_from_bytes<Keys: IntoIterator>(
         &mut self,
-        keys: Keys,
+        keys: impl FnMut() -> Keys,
         config: &BuildConfiguration,
     ) -> Result<BuildTimings, Exception>
     where
-        <Keys as IntoIterator>::IntoIter: Clone,
         <<Keys as IntoIterator>::IntoIter as Iterator>::Item: Hashable,
     {
         build_in_internal_memory_from_bytes!(self, keys, config, into_iter)
@@ -113,11 +111,10 @@ impl<M: Minimality, H: Hasher, E: Encoder> Phf for SinglePhf<M, H, E> {
     #[cfg(feature = "rayon")]
     fn par_build_in_internal_memory_from_bytes<Keys: IntoParallelIterator>(
         &mut self,
-        keys: Keys,
+        keys: impl FnMut() -> Keys,
         config: &BuildConfiguration,
     ) -> Result<BuildTimings, Exception>
     where
-        <Keys as IntoParallelIterator>::Iter: Clone,
         <<Keys as IntoParallelIterator>::Iter as ParallelIterator>::Item: Hashable,
     {
         build_in_internal_memory_from_bytes!(self, keys, config, into_par_iter)

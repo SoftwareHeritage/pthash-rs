@@ -43,7 +43,7 @@ impl<M: Minimality, H: Hasher, E: Encoder> PartitionedPhf<M, H, E> {
 
 macro_rules! build_in_internal_memory_from_bytes {
     ($self:expr, $keys:expr, $config:expr, $into_iter:ident) => {{
-        let keys = $keys;
+        let mut keys = $keys;
         let config = $config;
 
         // This is a Rust rewrite of internal_memory_builder_partitioned_phf::build_from_keys
@@ -56,7 +56,7 @@ macro_rules! build_in_internal_memory_from_bytes {
         }
         $self.seed = config.seed;
 
-        let hashes: Vec<_> = keys.$into_iter().map(|key| H::hash(key, config.seed)).collect();
+        let hashes: Vec<_> = keys().$into_iter().map(|key| H::hash(key, config.seed)).collect();
 
         let mut builder =
             <<M as SealedMinimality>::PartitionedPhfBackend<H::Hash, E> as BackendPhf>::Builder::new();
@@ -79,7 +79,7 @@ impl<M: Minimality, H: Hasher, E: Encoder> Phf for PartitionedPhf<M, H, E>
 
     fn build_in_internal_memory_from_bytes<Keys: IntoIterator>(
         &mut self,
-        keys: Keys,
+        keys: impl FnMut() -> Keys,
         config: &BuildConfiguration,
     ) -> Result<BuildTimings, Exception>
     where
@@ -91,7 +91,7 @@ impl<M: Minimality, H: Hasher, E: Encoder> Phf for PartitionedPhf<M, H, E>
     #[cfg(feature = "rayon")]
     fn par_build_in_internal_memory_from_bytes<Keys: IntoParallelIterator>(
         &mut self,
-        keys: Keys,
+        keys: impl FnMut() -> Keys,
         config: &BuildConfiguration,
     ) -> Result<BuildTimings, Exception>
     where
