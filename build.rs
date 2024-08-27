@@ -175,7 +175,7 @@ fn main_() -> Result<(), BuildError> {
 
     let mut b = autocxx_build::Builder::new(
         "src/structs.rs",
-        &[
+        [
             &manifest_dir.join("src"),
             pthash_src_dir,
             &pthash_src_dir.join("include/"),
@@ -247,7 +247,7 @@ struct ConcreteStruct {
 }
 
 fn has_feature(feature: &str) -> bool {
-    std::env::var(&format!("CARGO_FEATURE_{}", feature.to_uppercase())).is_ok()
+    std::env::var(format!("CARGO_FEATURE_{}", feature.to_uppercase())).is_ok()
 }
 
 fn concrete_structs() -> Result<Vec<ConcreteStruct>, BuildError> {

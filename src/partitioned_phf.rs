@@ -31,6 +31,7 @@ pub struct PartitionedPhf<M: Minimality, H: Hasher, E: Encoder> {
 unsafe impl<M: Minimality, H: Hasher, E: Encoder> Send for PartitionedPhf<M, H, E> {}
 unsafe impl<M: Minimality, H: Hasher, E: Encoder> Sync for PartitionedPhf<M, H, E> {}
 
+#[allow(clippy::new_without_default)]
 impl<M: Minimality, H: Hasher, E: Encoder> PartitionedPhf<M, H, E> {
     pub fn new() -> Self {
         PartitionedPhf {

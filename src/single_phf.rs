@@ -32,6 +32,7 @@ pub struct SinglePhf<M: Minimality, H: Hasher, E: Encoder> {
 unsafe impl<M: Minimality, H: Hasher, E: Encoder> Send for SinglePhf<M, H, E> {}
 unsafe impl<M: Minimality, H: Hasher, E: Encoder> Sync for SinglePhf<M, H, E> {}
 
+#[allow(clippy::new_without_default)]
 impl<M: Minimality, H: Hasher, E: Encoder> SinglePhf<M, H, E> {
     pub fn new() -> Self {
         SinglePhf {

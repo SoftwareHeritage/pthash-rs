@@ -3,6 +3,8 @@
 // License: GNU General Public License version 3, or any later version
 // See top-level LICENSE file for more information
 
+#![allow(clippy::missing_safety_doc)]
+
 use autocxx::prelude::*;
 
 include_cpp! {
