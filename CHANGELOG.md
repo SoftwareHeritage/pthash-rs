@@ -1,3 +1,21 @@
+# v0.4.0
+
+*2024-08-27*
+
+Breaking change:
+
+* `build_in_internal_memory_from_bytes`: Expect closure yielding iterables, instead of needing clonable iterables
+
+Improvements:
+
+* Remove unnecessary `ExactSizeIterator` bound on `build_in_internal_memory_from_bytes`'s argument
+* Add `par_build_in_internal_memory_from_bytes` to hash in parallel (using [Rayon](https://crates.io/crates/rayon))
+
+Documentation:
+
+* README: Don't highlight console block as Rust code
+* Fix keywords and categories
+
 # v0.3.3
 
 *2024-08-22*
