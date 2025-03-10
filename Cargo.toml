@@ -65,3 +65,6 @@ tempfile = "3.7.1"
 [[example]]
 name = "example"
 required-features = ["check"]
+
+[package.metadata.docs.rs]
+all-features = true
