@@ -26,7 +26,6 @@ rust-1.77-default-features:
     - apt-get update
     - apt-get install -y libclang-dev cmake
     - cargo build
-    - mkdir pthash/build/ && cmake -DCMAKE_BUILD_TYPE=Debug -S pthash/ -B pthash/build/ && make -C pthash/build/ -j$(nproc)  # one of the tests needs pthash's `build` executable
     - cargo test
 
 rust-latest-default-features:
@@ -49,7 +48,6 @@ rust-latest-default-features:
     - apt-get update
     - apt-get install -y libclang-dev cmake
     - cargo build
-    - mkdir pthash/build/ && cmake -DCMAKE_BUILD_TYPE=Debug -S pthash/ -B pthash/build/ && make -C pthash/build/ -j$(nproc)  # one of the tests needs pthash's `build` executable
     - cargo test
 
 rust-latest-some-features 1/2:
@@ -65,7 +63,6 @@ rust-latest-some-features 1/2:
     - apt-get update
     - apt-get install -y libclang-dev cmake
     - cargo build
-    - mkdir pthash/build/ && cmake -DCMAKE_BUILD_TYPE=Debug -S pthash/ -B pthash/build/ && make -C pthash/build/ -j$(nproc)  # one of the tests needs pthash's `build` executable
     - cargo test --no-default-features --features=minimal,hash64,dictionary_dictionary
 
 rust-latest-some-features 2/2:
@@ -81,7 +78,6 @@ rust-latest-some-features 2/2:
     - apt-get update
     - apt-get install -y libclang-dev cmake
     - cargo build
-    - mkdir pthash/build/ && cmake -DCMAKE_BUILD_TYPE=Debug -S pthash/ -B pthash/build/ && make -C pthash/build/ -j$(nproc)  # one of the tests needs pthash's `build` executable
     - cargo test --no-default-features --features=nonminimal,hash128,elias_fano
 
 rust-nightly-default-features:
@@ -97,6 +93,5 @@ rust-nightly-default-features:
     - apt-get update
     - apt-get install -y libclang-dev cmake
     - cargo build
-    - mkdir pthash/build/ && cmake -DCMAKE_BUILD_TYPE=Debug -S pthash/ -B pthash/build/ && make -C pthash/build/ -j$(nproc)  # one of the tests needs pthash's `build` executable
     - cargo test
   allow_failure: true

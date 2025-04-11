@@ -10,8 +10,10 @@
 //! (built with `mkdir pthash/build; cd pthash/build; cmake ..; make`)
 
 use std::collections::HashSet;
+use std::env;
 use std::io::{Read, Write};
 use std::process::{Command, Stdio};
+use std::sync::Once;
 
 use anyhow::{bail, Context, Result};
 use rand::distributions::Alphanumeric;
@@ -20,12 +22,31 @@ use rand::{Rng, SeedableRng};
 
 use pthash::*;
 
+static INIT: Once = Once::new();
+
+pub fn setup_test() {
+    INIT.call_once(|| {
+        // Build pthash executable named 'build' required for tests
+        let mut out_dir = env::current_dir().unwrap();
+        out_dir.push("pthash");
+
+        cmake::Config::new("pthash")
+            .out_dir(out_dir.as_path())
+            .target(target_triple::TARGET)
+            .host(target_triple::HOST)
+            .profile("Debug")
+            .build_target("build")
+            .build();
+    });
+}
+
 macro_rules! impl_test {
     ($test_name:ident, $struct_name:ident) => {
         fn $test_name<M: Minimality, H: Hasher, E: Encoder>(
             mut num_keys: u64,
             num_partitions: u64,
         ) -> Result<()> {
+            setup_test();
             let temp_dir = tempfile::tempdir().context("Could not create temp dir")?;
             let phf_path = temp_dir.path().join("phf.bin");
 

@@ -61,6 +61,8 @@ anyhow = "1.0.79"
 rand = "0.8.5"
 stderrlog = "0.5.4"
 tempfile = "3.7.1"
+cmake = "0.1.54"
+target-triple = "0.1.4"
 
 [[example]]
 name = "example"
