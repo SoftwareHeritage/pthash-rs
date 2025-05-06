@@ -1,4 +1,4 @@
-// Copyright (C) 2024 The Software Heritage developers
+// Copyright (C) 2024-2025 The Software Heritage developers
 // See the AUTHORS file at the top-level directory of this distribution
 // License: GNU General Public License version 3, or any later version
 // See top-level LICENSE file for more information
@@ -35,7 +35,7 @@ use anyhow::{Context, Result};
 use rand::prelude::*;
 
 use pthash::{
-    BuildConfiguration, DictionaryDictionary, Hashable, Minimal, MurmurHash2_64, Phf, SinglePhf,
+    BuildConfiguration, DictionaryDictionary, Minimal, MurmurHash2_64, Phf, SinglePhf,
 };
 
 fn main() {
@@ -84,7 +84,7 @@ fn main_() -> Result<()> {
     log::info!("building the function...");
     let start = Instant::now();
     let timings = f
-        .build_in_internal_memory_from_bytes(&keys, &config)
+        .build_in_internal_memory_from_bytes(|| {&keys}, &config)
         .context("Could not build PHF")?;
     // let timings = f.build_in_external_memory(keys, config);
     log::info!("function built in {} seconds", start.elapsed().as_secs());
@@ -99,7 +99,7 @@ fn main_() -> Result<()> {
     log::info!("function uses {} [bits/key]", bits_per_key);
 
     /* Sanity check! */
-    check(&keys, &f)?;
+    pthash::check(&keys, &f)?;
     log::info!("EVERYTHING OK!");
 
     /* Now evaluate f on some keys. */
@@ -115,7 +115,7 @@ fn main_() -> Result<()> {
     log::info!("reading the function from disk...");
     {
         /* Now reload from disk and query. */
-        let other = SinglePhf::<Minimal, MurmurHash2_64, encoders::DictionaryDictionary>::load(
+        let other = SinglePhf::<Minimal, MurmurHash2_64, DictionaryDictionary>::load(
             &output_path,
         )
         .context("Could not read PHF")?;
