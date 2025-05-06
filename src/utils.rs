@@ -42,7 +42,7 @@ pub enum ViolatedInvariant {
 }
 
 #[cfg(feature = "check")]
-/// Checks the function is injective (and bijective in `[0; num_keys)`, if [`Self::MINIMAL`])
+/// Checks the function is injective (and bijective in `[0; num_keys)`, if [`Phf::MINIMAL`])
 pub fn check<Keys: IntoIterator, F: Phf>(keys: Keys, f: &F) -> Result<(), ViolatedInvariant>
 where
     <<Keys as IntoIterator>::IntoIter as Iterator>::Item: Hashable,
