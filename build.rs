@@ -216,8 +216,8 @@ fn main_() -> Result<(), BuildError> {
         .flag("-std=c++17")
         .include("src")
         .include(pthash_src_dir)
-        .include(&pthash_src_dir.join("include/"))
-        .include(&pthash_src_dir.join("external/essentials/include/"))
+        .include(pthash_src_dir.join("include/"))
+        .include(pthash_src_dir.join("external/essentials/include/"))
         .compile("pthash");
 
     for module in BRIDGE_MODULES {

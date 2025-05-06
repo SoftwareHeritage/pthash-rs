@@ -3,9 +3,8 @@
 Rust bindings for [PTHash](https://github.com/jermp/pthash), a C++ library implementing
 perfect-hash functions using:
 
-* Giulio Ermanno Pibiri and Roberto Trani. [*"PTHash: Revisiting FCH Minimal Perfect Hashing"*](https://dl.acm.org/doi/10.1145/3404835.3462849). In Proceedings of the 44th International
-Conference on Research and Development in Information Retrieval (SIGIR). 2021.
-* Giulio Ermanno Pibiri and Roberto Trani. [*"Parallel and External-Memory Construction of Minimal Perfect Hash Functions with PTHash"*](https://ieeexplore.ieee.org/document/10210677). Transactions on Knowledge and Data Engineering (TKDE). 2023.
+* Giulio Ermanno Pibiri and Roberto Trani. [*"PTHash: Revisiting FCH Minimal Perfect Hashing"*](https://dl.acm.org/doi/10.1145/3404835.3462849). In Proceedings of the 44th International Conference on Research and Development in Information Retrieval (SIGIR). 2021.
+* Giulio Ermanno Pibiri and Roberto Trani. [*"Parallel and External-Memory Construction of Minimal Perfect Hash Functions with PTHash"*](https://ieeexplore.ieee.org/document/10210677). Transactions on Knowledge and Data  Engineering (TKDE). 2023.
 
 ## Building
 

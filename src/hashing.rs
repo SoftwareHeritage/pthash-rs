@@ -72,7 +72,7 @@ impl Hashable for [u8] {
     }
 }
 
-impl<'a, T: Hashable + ?Sized> Hashable for &'a T {
+impl<T: Hashable + ?Sized> Hashable for &T {
     type Bytes<'b> = T::Bytes<'b> where Self: 'b;
 
     fn as_bytes(&self) -> Self::Bytes<'_> {
@@ -104,11 +104,6 @@ pub trait Hasher {
 
 #[cxx::bridge]
 mod ffi {
-    struct byte_range {
-        begin: *const u8,
-        end: *const u8,
-    }
-
     #[namespace = "pthash_rs::utils"]
     unsafe extern "C++" {
         include!("cpp-utils.hpp");
