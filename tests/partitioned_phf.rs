@@ -17,7 +17,7 @@ fn test_partitioned<M: Minimality, H: Hasher, E: Encoder>() -> Result<()> {
 
     let keys: Vec<&[u8]> = vec!["abc".as_bytes(), "def".as_bytes(), "ghikl".as_bytes()];
 
-    let check = |f: PartitionedPhf::<M, H, E>| -> Result<()> {
+    let check = |f: PartitionedPhf<M, H, E>| -> Result<()> {
         // Hashes are unique
         let mut hashes: Vec<u64> = keys.iter().map(|key| f.hash(key)).collect();
         hashes.sort();

@@ -73,7 +73,10 @@ impl Hashable for [u8] {
 }
 
 impl<T: Hashable + ?Sized> Hashable for &T {
-    type Bytes<'b> = T::Bytes<'b> where Self: 'b;
+    type Bytes<'b>
+        = T::Bytes<'b>
+    where
+        Self: 'b;
 
     fn as_bytes(&self) -> Self::Bytes<'_> {
         T::as_bytes(self)
@@ -81,7 +84,10 @@ impl<T: Hashable + ?Sized> Hashable for &T {
 }
 
 impl Hashable for u64 {
-    type Bytes<'a> = [u8; 8] where Self: 'a;
+    type Bytes<'a>
+        = [u8; 8]
+    where
+        Self: 'a;
 
     fn as_bytes(&self) -> Self::Bytes<'_> {
         // quirk-compatibility with the C++ implementation

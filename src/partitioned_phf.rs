@@ -74,8 +74,7 @@ macro_rules! build_in_internal_memory_from_bytes {
     }}
 }
 
-impl<M: Minimality, H: Hasher, E: Encoder> Phf for PartitionedPhf<M, H, E>
-{
+impl<M: Minimality, H: Hasher, E: Encoder> Phf for PartitionedPhf<M, H, E> {
     const MINIMAL: bool = M::AS_BOOL;
 
     fn build_in_internal_memory_from_bytes<Keys: IntoIterator>(

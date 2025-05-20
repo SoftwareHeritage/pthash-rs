@@ -58,7 +58,6 @@ macro_rules! build_in_internal_memory_from_bytes {
             (0..10).map(|_| rng.gen()).collect()
         };
 
-
         let mut last_error = None;
         for (i, seed) in seeds.into_iter().enumerate() {
             let hashes: Vec<_> = keys().$into_iter().map(|key| H::hash(key, seed)).collect();
@@ -92,7 +91,7 @@ macro_rules! build_in_internal_memory_from_bytes {
 
         // All seeds failed
         Err(last_error.unwrap())
-    }}
+    }};
 }
 
 impl<M: Minimality, H: Hasher, E: Encoder> Phf for SinglePhf<M, H, E> {

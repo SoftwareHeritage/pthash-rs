@@ -34,9 +34,7 @@ use std::time::Instant;
 use anyhow::{Context, Result};
 use rand::prelude::*;
 
-use pthash::{
-    BuildConfiguration, DictionaryDictionary, Minimal, MurmurHash2_64, Phf, SinglePhf,
-};
+use pthash::{BuildConfiguration, DictionaryDictionary, Minimal, MurmurHash2_64, Phf, SinglePhf};
 
 fn main() {
     if let Err(e) = main_() {
@@ -84,7 +82,7 @@ fn main_() -> Result<()> {
     log::info!("building the function...");
     let start = Instant::now();
     let timings = f
-        .build_in_internal_memory_from_bytes(|| {&keys}, &config)
+        .build_in_internal_memory_from_bytes(|| &keys, &config)
         .context("Could not build PHF")?;
     // let timings = f.build_in_external_memory(keys, config);
     log::info!("function built in {} seconds", start.elapsed().as_secs());
@@ -115,10 +113,8 @@ fn main_() -> Result<()> {
     log::info!("reading the function from disk...");
     {
         /* Now reload from disk and query. */
-        let other = SinglePhf::<Minimal, MurmurHash2_64, DictionaryDictionary>::load(
-            &output_path,
-        )
-        .context("Could not read PHF")?;
+        let other = SinglePhf::<Minimal, MurmurHash2_64, DictionaryDictionary>::load(&output_path)
+            .context("Could not read PHF")?;
         for i in 0..10 {
             log::info!("f({}) = {}", keys[i], other.hash(keys[i]));
             assert_eq!(f.hash(keys[i]), other.hash(keys[i]));
