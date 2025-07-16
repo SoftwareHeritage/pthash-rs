@@ -16,7 +16,7 @@ use std::process::{Command, Stdio};
 use std::sync::Once;
 
 use anyhow::{bail, Context, Result};
-use rand::distributions::Alphanumeric;
+use rand::distr::Alphanumeric;
 use rand::rngs::StdRng;
 use rand::{Rng, SeedableRng};
 
@@ -54,7 +54,7 @@ macro_rules! impl_test {
             let mut keys = Vec::new();
             let mut key_set = HashSet::new();
             for _ in (0..num_keys) {
-                let len: u8 = rng.gen();
+                let len: u8 = rng.random();
                 let key: Vec<u8> = (0..len).map(|_| rng.sample(&Alphanumeric)).collect();
                 if !key_set.contains(&key) {
                     // Cannot have duplicates in the set of keys.

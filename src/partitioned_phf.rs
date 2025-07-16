@@ -52,8 +52,8 @@ macro_rules! build_in_internal_memory_from_bytes {
 
         let mut config = (*config).clone();
         if !crate::utils::valid_seed(config.seed) {
-            let mut rng = rand::thread_rng();
-            config.seed = rng.gen();
+            let mut rng = rand::rng();
+            config.seed = rng.random();
         }
         $self.seed = config.seed;
 

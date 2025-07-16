@@ -38,7 +38,7 @@ use pthash::{BuildConfiguration, DictionaryDictionary, Minimal, MurmurHash2_64, 
 
 fn main() {
     if let Err(e) = main_() {
-        eprintln!("Error: {}", e);
+        eprintln!("Error: {e}");
         std::process::exit(1);
     }
 }
@@ -56,7 +56,7 @@ fn main_() -> Result<()> {
     let mut keys = HashSet::<u64>::with_capacity(num_keys);
     let mut rng = StdRng::seed_from_u64(seed);
     while keys.len() < num_keys {
-        keys.insert(rng.gen());
+        keys.insert(rng.random());
     }
     let mut keys: Vec<_> = keys.into_iter().collect();
     // iterating on a HashSet does not have a guaranteed order, and we want determinism
@@ -94,7 +94,7 @@ fn main_() -> Result<()> {
 
     /* Compute and print the number of bits spent per key. */
     let bits_per_key = (f.num_bits() as f64) / (f.num_keys() as f64);
-    log::info!("function uses {} [bits/key]", bits_per_key);
+    log::info!("function uses {bits_per_key} [bits/key]");
 
     /* Sanity check! */
     pthash::check(&keys, &f)?;

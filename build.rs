@@ -160,7 +160,7 @@ pub enum BuildError {
 
 fn main() {
     if let Err(e) = main_() {
-        eprintln!("Failed to generate PTHash FFI: {}", e);
+        eprintln!("Failed to generate PTHash FFI: {e}");
         std::process::exit(1);
     }
 }
@@ -221,7 +221,7 @@ fn main_() -> Result<(), BuildError> {
         .compile("pthash");
 
     for module in BRIDGE_MODULES {
-        println!("cargo:rerun-if-changed={}", module);
+        println!("cargo:rerun-if-changed={module}");
     }
     println!("cargo:rerun-if-changed=src/structs.rs");
     println!("cargo:rerun-if-changed=src/cpp-utils.hpp");
@@ -266,7 +266,7 @@ fn concrete_structs() -> Result<Vec<ConcreteStruct>, BuildError> {
 
     let hash_sizes: Vec<_> = ["64", "128"]
         .into_iter()
-        .filter(|hash_size| has_feature(&format!("hash{}", hash_size)))
+        .filter(|hash_size| has_feature(&format!("hash{hash_size}")))
         .collect();
 
     if hash_sizes.is_empty() {
@@ -289,14 +289,12 @@ fn concrete_structs() -> Result<Vec<ConcreteStruct>, BuildError> {
                 for minimality in &minimalities {
                     concrete_structs.push(ConcreteStruct {
                         struct_name: format!(
-                            "{}phf_{}_{}_{}",
-                            phf_type, hash_size, encoder_snakecase, minimality
+                            "{phf_type}phf_{hash_size}_{encoder_snakecase}_{minimality}"
                         ),
                         encoder_name: encoder_camelcase.to_string(),
-                        hash_type: format!("hash{}", hash_size),
+                        hash_type: format!("hash{hash_size}"),
                         builder_name: format!(
-                            "internal_memory_builder_{}_phf_{}",
-                            phf_type, hash_size
+                            "internal_memory_builder_{phf_type}_phf_{hash_size}"
                         ),
                     })
                 }

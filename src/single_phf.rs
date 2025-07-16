@@ -54,8 +54,8 @@ macro_rules! build_in_internal_memory_from_bytes {
         let seeds = if crate::utils::valid_seed(config.seed) {
             vec![config.seed]
         } else {
-            let mut rng = rand::thread_rng();
-            (0..10).map(|_| rng.gen()).collect()
+            let mut rng = rand::rng();
+            (0..10).map(|_| rng.random()).collect()
         };
 
         let mut last_error = None;
