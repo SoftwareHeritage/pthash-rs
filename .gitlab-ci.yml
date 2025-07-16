@@ -6,9 +6,9 @@ variables:
 stages:
   - test
 
-rust-1.77-default-features:
+rust-1.83-default-features:
   stage: test
-  image: docker.io/library/rust:1.77
+  image: docker.io/library/rust:1.83
   cache:
     - &apt_cache
       key: apt
@@ -19,7 +19,7 @@ rust-1.77-default-features:
       key: pthash-exe
       paths:
         - pthash/build/
-    - key: rust-1.77-default-features
+    - key: rust-1.83-default-features
       paths:
         - target/
   script:
