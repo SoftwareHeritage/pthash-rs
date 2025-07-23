@@ -158,6 +158,16 @@ pub enum BuildError {
     NoMinimality,
 }
 
+// see https://github.com/dtolnay/cxx/issues/1004
+fn remove_cxxbridge_symlink(crate_name: &str) {
+    let out_dir = std::env::var("OUT_DIR").unwrap();
+    let mut crate_dir = PathBuf::from(&out_dir);
+    crate_dir.push("cxxbridge");
+    crate_dir.push("crate");
+    crate_dir.push(crate_name);
+    std::fs::remove_file(crate_dir).expect("failed to remove the symlink created by cxx");
+}
+
 fn main() {
     if let Err(e) = main_() {
         eprintln!("Failed to generate PTHash FFI: {e}");
@@ -219,6 +229,8 @@ fn main_() -> Result<(), BuildError> {
         .include(pthash_src_dir.join("include/"))
         .include(pthash_src_dir.join("external/essentials/include/"))
         .compile("pthash");
+
+    remove_cxxbridge_symlink("pthash");
 
     for module in BRIDGE_MODULES {
         println!("cargo:rerun-if-changed={module}");
